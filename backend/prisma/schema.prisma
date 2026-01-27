@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider   = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  output     = "../generated/prisma"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  extensions = [pgvector]
+}
+
+enum Role {
+  Student
+  Professor
+  ClubHead
+  Admin
+}
+
+model User {
+  user_id Int @id @default(autoincrement())
+  email String @unique
+  pass_hash String
+  full_name String
+  role Role 
+  reputation_points Int @default(0)
+  created_at DateTime @default(now())
+
+  // Relationships
+  profile Profile?
+  created_communities Community[] @relation("community_creator")
+  community_member CommunityMember[]
+  badges_earned UserBadge[]
+  notif_received Notification[]
+  posts Post[]
+  submitted_reports FlagReport[]
+}
+
+model Profile {
+  profile_id Int @id @default(autoincrement())
+  user_id Int @unique
+  bio String?
+  interested_tags String[]
+  tags_vector Unsupported("vector(384)")?
+  open_to_mentoring Boolean @default(false)
+  portfolio_link String?
+
+  // Relationships
+  user User @relation(fields: [user_id],references: [user_id])
+}
+
+model Community {
+  community_id Int @id @default(autoincrement())
+  name String
+  description String?
+  tags String[]
+  created_by_user_id Int 
+
+  // Relationships
+  created_by_user User @relation("community_creator",fields: [created_by_user_id],references: [user_id])
+  members CommunityMember[]
+  posts Post[]
+}
+
+enum CommunityRole{
+  Member
+  Moderator
+}
+
+model CommunityMember {
+  user_id Int
+  community_id Int
+  @@id([user_id,community_id])
+  role CommunityRole @default(Member)
+  joined_at DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [user_id],references: [user_id])
+  community Community @relation(fields: [community_id],references: [community_id])
+}
+
+model Badge{
+  badge_id Int @id @default(autoincrement())
+  name String
+  icon_url String
+  points_threshold Int
+
+  // relationships
+  awarded_to UserBadge[]
+}
+
+model UserBadge{
+  user_id Int
+  badge_id Int
+  awarded_at DateTime @default(now())
+  @@id([user_id,badge_id])
+
+  // relationships
+  user User @relation(fields: [user_id],references: [user_id])
+  badge Badge @relation(fields: [badge_id],references: [badge_id])
+}
+
+enum NotificationType{
+  Standard
+  Priority
+}
+
+model Notification{
+  notif_id Int @id @default(autoincrement())
+  user_id Int
+  content String
+  type NotificationType @default(Standard)
+  is_read Boolean @default(false)
+  created_at DateTime @default(now())
+
+  // relationship
+  user User @relation(fields: [user_id],references: [user_id])
+}
+
+enum PostType{
+  Discussion
+  Resource
+  Announcement
+}
+
+enum PostStatus{
+  Pending
+  Accepted
+  Rejected
+  Flagged
+}
+
+model Post{
+  post_id Int @id @default(autoincrement())
+  user_id Int
+  community_id Int
+  content String
+  type PostType
+  status PostStatus
+  embedding_vector Unsupported("vector(384)")
+  created_at DateTime @default(now())
+
+  // relationship
+  user User @relation(fields: [user_id],references: [user_id])
+  community Community @relation(fields: [community_id],references: [community_id])
+  attachments PostAttachment[]
+  llm_audit_logs LLMAuditLog[]
+  flag_reports FlagReport[]
+}
+
+enum AttachmentType{
+  Doc
+  Image
+  Link
+}
+
+model PostAttachment{
+  attachment_id Int @id @default(autoincrement())
+  post_id Int 
+  type AttachmentType
+  url String
+  title String
+  file_size String?
+  isVerified Boolean @default(false)
+
+  // relationships
+  post Post @relation(fields: [post_id], references: [post_id])
+}
+
+enum Decision{
+  Accepted
+  Rejected
+  Flagged
+}
+
+model LLMAuditLog{
+  log_id Int @id @default(autoincrement())
+  post_id Int
+  decision Decision 
+  reason String?
+  confidenceScore Float
+  processed_at DateTime @default(now())
+
+  // relationship
+  post Post @relation(fields: [post_id],references: [post_id])
+}
+
+enum FlagStatus{
+  Open
+  Resolved
+  Dismissed
+}
+
+model FlagReport{
+  report_id Int @id @default(autoincrement())
+  post_id Int
+  reporter_user_id Int
+  reason String
+  status FlagStatus @default(Open)
+
+  // relationship
+  post Post @relation(fields: [post_id],references: [post_id])
+  reporter User @relation(fields: [reporter_user_id],references: [user_id])
+}

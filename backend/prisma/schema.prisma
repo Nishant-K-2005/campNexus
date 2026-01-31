@@ -7,7 +7,6 @@
 generator client {
   provider   = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
-  output     = "../generated/prisma"
   
 }
 
@@ -15,7 +14,6 @@ datasource db {
   provider = "postgresql"
   url        = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  extensions = [pgvector]
 }
 
 enum Role {
@@ -26,7 +24,7 @@ enum Role {
 }
 
 model User {
-  user_id Int @id @default(autoincrement())
+  user_id String @id @default(uuid())
   email String @unique
   pass_hash String
   full_name String
@@ -45,8 +43,8 @@ model User {
 }
 
 model Profile {
-  profile_id Int @id @default(autoincrement())
-  user_id Int @unique
+  profile_id String @id @default(uuid())
+  user_id String @unique
   bio String?
   interested_tags String[]
   tags_vector Unsupported("vector(384)")?
@@ -58,11 +56,11 @@ model Profile {
 }
 
 model Community {
-  community_id Int @id @default(autoincrement())
+  community_id String @id @default(uuid())
   name String
   description String?
   tags String[]
-  created_by_user_id Int 
+  created_by_user_id String 
 
   // Relationships
   created_by_user User @relation("community_creator",fields: [created_by_user_id],references: [user_id])
@@ -76,8 +74,8 @@ enum CommunityRole{
 }
 
 model CommunityMember {
-  user_id Int
-  community_id Int
+  user_id String
+  community_id String
   @@id([user_id,community_id])
   role CommunityRole @default(Member)
   joined_at DateTime @default(now())
@@ -88,7 +86,7 @@ model CommunityMember {
 }
 
 model Badge{
-  badge_id Int @id @default(autoincrement())
+  badge_id String @id @default(uuid())
   name String
   icon_url String
   points_threshold Int
@@ -98,8 +96,8 @@ model Badge{
 }
 
 model UserBadge{
-  user_id Int
-  badge_id Int
+  user_id String
+  badge_id String
   awarded_at DateTime @default(now())
   @@id([user_id,badge_id])
 
@@ -114,8 +112,8 @@ enum NotificationType{
 }
 
 model Notification{
-  notif_id Int @id @default(autoincrement())
-  user_id Int
+  notif_id String @id @default(uuid())
+  user_id String
   content String
   type NotificationType @default(Standard)
   is_read Boolean @default(false)
@@ -139,12 +137,12 @@ enum PostStatus{
 }
 
 model Post{
-  post_id Int @id @default(autoincrement())
-  user_id Int
-  community_id Int
+  post_id String @id @default(uuid())
+  user_id String
+  community_id String
   content String
   type PostType
-  status PostStatus
+  status PostStatus @default(Pending)
   embedding_vector Unsupported("vector(384)")
   created_at DateTime @default(now())
 
@@ -163,8 +161,8 @@ enum AttachmentType{
 }
 
 model PostAttachment{
-  attachment_id Int @id @default(autoincrement())
-  post_id Int 
+  attachment_id String @id @default(uuid())
+  post_id String
   type AttachmentType
   url String
   title String
@@ -182,8 +180,8 @@ enum Decision{
 }
 
 model LLMAuditLog{
-  log_id Int @id @default(autoincrement())
-  post_id Int
+  log_id String @id @default(uuid())
+  post_id String
   decision Decision 
   reason String?
   confidenceScore Float
@@ -200,9 +198,9 @@ enum FlagStatus{
 }
 
 model FlagReport{
-  report_id Int @id @default(autoincrement())
-  post_id Int
-  reporter_user_id Int
+  report_id String @id @default(uuid())
+  post_id String
+  reporter_user_id String
   reason String
   status FlagStatus @default(Open)
 

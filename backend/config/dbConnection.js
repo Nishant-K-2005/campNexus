@@ -4,7 +4,7 @@ const { PrismaClient } = pkg;
 let prisma;
 
 if(process.env.NODE_ENV === "production"){
-    prisma = new prismaClient()
+    prisma = new PrismaClient()
 }else{
     if(!global.prisma){
         global.prisma = new PrismaClient()

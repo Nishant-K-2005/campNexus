@@ -106,6 +106,7 @@ const SignupPage = () => {
                                         <option value="student">Student</option>
                                         <option value="professor">Professor / Faculty</option>
                                         <option value="club_head">Club Head</option>
+                                        <option value="admin">Admin</option>
                                     </select>
                                     {/* Custom Arrow Icon */}
                                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">

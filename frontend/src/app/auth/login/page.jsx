@@ -1,146 +1,217 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import useAuthStore from "@/store/authStore";
+import { Loader, User, Mail, Lock } from "lucide-react";
+import { motion } from "framer-motion";
 
-const page = () => {
-    const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({ email: '', password: '' });
+const LoginPage = () => {
+  const router = useRouter();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // TODO: Hook this up to your Backend API or Firebase Auth
-        console.log('Login attempted with:', formData);
-    };
+  const { isLoading, user, login: loginUser } = useAuthStore();
 
-    return (
-        <div className="min-h-screen flex bg-white w-fit text-center mx-auto">
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    role: "Student",
+  });
 
-            {/* LEFT SIDE: Form Section */}
-            <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24 w-full lg:w-[480px]">
-                <div className="mx-auto w-full max-w-sm lg:w-96">
+  const [errors, setErrors] = useState({});
 
-                    {/* Logo / Branding */}
-                    <div className="flex items-center gap-2 mb-10 justify-center">
-                        <span className="material-symbols-outlined text-indigo-600 text-4xl">hub</span>
-                        <span className="text-2xl font-bold text-gray-900 tracking-tight">CampNexus</span>
-                    </div>
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-                    <div>
-                        <h2 className="text-3xl font-extrabold text-gray-900">Welcome back</h2>
-                        <p className="mt-2 text-sm text-gray-600">
-                            Please enter your details to sign in.
-                        </p>
-                    </div>
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
-                    <div className="mt-8">
-                        <div className="mt-6">
-                            <form onSubmit={handleSubmit} className="space-y-6">
+  const validateForm = () => {
+    const newErrors = {};
 
-                                {/* Email Field */}
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                        Email address
-                                    </label>
-                                    <div className="mt-1 relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span className="material-symbols-outlined text-gray-400 text-[20px]">mail</span>
-                                        </div>
-                                        <input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            autoComplete="email"
-                                            required
-                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
-                                            placeholder="student@university.edu"
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Email is invalid";
 
-                                {/* Password Field */}
-                                <div>
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                        Password
-                                    </label>
-                                    <div className="mt-1 relative rounded-md shadow-sm">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span className="material-symbols-outlined text-gray-400 text-[20px]">lock</span>
-                                        </div>
-                                        <input
-                                            id="password"
-                                            name="password"
-                                            type={showPassword ? 'text' : 'password'}
-                                            autoComplete="current-password"
-                                            required
-                                            className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
-                                            placeholder="••••••••"
-                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        />
-                                        {/* Toggle Visibility Eye */}
-                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                                            >
-                                                <span className="material-symbols-outlined text-[20px]">
-                                                    {showPassword ? 'visibility_off' : 'visibility'}
-                                                </span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 8)
+      newErrors.password = "Password must be at least 8 characters";
 
-                                {/* Remember Me & Forgot Password */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center">
-                                        <input
-                                            id="remember-me"
-                                            name="remember-me"
-                                            type="checkbox"
-                                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                        />
-                                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                                            Remember me
-                                        </label>
-                                    </div>
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-                                    <div className="text-sm">
-                                        <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                                            Forgot password?
-                                        </a>
-                                    </div>
-                                </div>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-                                {/* Submit Button */}
-                                <div>
-                                    <button
-                                        type="submit"
-                                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                                    >
-                                        Sign in
-                                    </button>
-                                </div>
-                            </form>
+    try {
+      await loginUser({
+        email: formData.email,
+        pass: formData.password,
+      });
+    } catch (error) {
+      // Error is handled in the store
+      console.error('Login failed:', error);
+    }
+  };
 
-                            {/* Sign Up Link */}
-                            <div className="mt-6 text-center">
-                                <p className="text-sm text-gray-600">
-                                    Don't have an account?{' '}
-                                    <Link href="/auth/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
-                                        Sign up
-                                    </Link>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  useEffect(() => {
+    if (user?.role) {
+      switch (user.role) {
+        case "Student":
+          router.push("/student");
+          break;
+        case "Professor":
+          router.push("/professor");
+          break;
+        case "Admin":
+          router.push("/admin");
+          break;
+        default:
+          router.push("/auth/login");
+      }
+    }
+  }, [user, router]);
+
+  return (
+    <div className="min-h-screen bg-[#060B1A] text-white overflow-hidden relative flex items-center justify-center px-4">
+      {/* Background blobs */}
+      <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 blur-3xl opacity-30 pointer-events-none">
+        <div className="aspect-square h-[650px] rounded-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400" />
+      </div>
+
+      <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 blur-3xl opacity-20 pointer-events-none">
+        <div className="aspect-square h-[520px] rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md rounded-2xl bg-white/5 border border-white/10 shadow-xl shadow-indigo-500/10 backdrop-blur p-6 sm:p-8 relative overflow-hidden"
+      >
+        <div className="relative">
+          {/* Header */}
+          <div className="text-center mb-8">
+           
+            <h1 className="mt-4 text-2xl font-extrabold">
+              CampNexus
+            </h1>
+            <p className="text-slate-300 mt-2 text-sm">
+              Sign in to your account
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Role */}
+            <div>
+              <label className="block text-sm font-medium text-slate-200">
+                Select Role
+              </label>
+              <div className="mt-1 relative rounded-xl">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-xl bg-[#0B122A]/70 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                >
+                  <option value="Student">Student</option>
+                  <option value="Professor">Professor</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
             </div>
 
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-slate-200">
+                Email Address
+              </label>
+              <div className="mt-1 relative rounded-xl">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-[#0B122A]/70 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${
+                    errors.email ? "border-red-400/40" : "border-white/10"
+                  }`}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-sm text-red-200 mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-slate-200">
+                Password
+              </label>
+              <div className="mt-1 relative rounded-xl">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-[#0B122A]/70 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${
+                    errors.password ? "border-red-400/40" : "border-white/10"
+                  }`}
+                />
+              </div>
+              {errors.password && (
+                <p className="text-sm text-red-200 mt-1">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Forgot Password */}
+            <div className="text-right">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-indigo-300 hover:text-indigo-200"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full inline-flex items-center justify-center py-3 px-4 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 shadow-lg shadow-indigo-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <Loader className="animate-spin mr-2 h-5 w-5 text-white" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </form>
+
+          {/* Bottom link */}
+          <div className="mt-6 text-center text-sm text-slate-300">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/auth/signup"
+              className="font-medium text-indigo-300 hover:text-indigo-200"
+            >
+              Sign up
+            </Link>
+          </div>
         </div>
-    );
+      </motion.div>
+    </div>
+  );
 };
 
-export default page;
+export default LoginPage;

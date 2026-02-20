@@ -27,7 +27,7 @@ export const signup = async (req, res) => {
             const profile = await tx.profile.create({
                 data: {
                     user_id: user.user_id,
-                    interested_tags: [],
+                    interested_tags: "",
                 }
             })
 
@@ -124,7 +124,7 @@ export const session = async (req, res) => {
     try{
         const user = req.user
         const profile = req.profile
-        res.status(200).json(user,profile);
+        res.status(200).json({user, profile});
     }catch(err){
         console.log("Session error: ",err.message);
         res.status(500).json({error: "Session error: Internal server error"});

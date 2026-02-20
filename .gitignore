@@ -21,3 +21,4 @@ Thumbs.db
 
 #--- prisma ---
 /generated/prisma
+backend/prisma/dev.db

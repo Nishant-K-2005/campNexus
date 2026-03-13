@@ -27,7 +27,7 @@ export const signup = async (req, res) => {
             const profile = await tx.profile.create({
                 data: {
                     user_id: user.user_id,
-                    interested_tags: "",
+                    interested_tags: [],
                 }
             })
 

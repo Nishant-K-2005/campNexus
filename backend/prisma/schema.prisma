@@ -143,7 +143,7 @@ model Post{
   content String
   type PostType
   status PostStatus @default(Pending)
-  embedding_vector Unsupported("vector(384)")
+  embedding_vector Unsupported("vector(384)")?
   created_at DateTime @default(now())
 
   // relationship

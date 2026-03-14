@@ -1,4 +1,3 @@
-import { CommunityRole } from "@prisma/client";
 import prisma from "../config/dbConnection.js";
 
 export const createCommunity = async (req, res)=>{

@@ -69,3 +69,23 @@ export const getCommunities = async (req, res) => {
         return res.status(500).json({error:"Cannot get Communities: Internal Server Error"});
     }
 }
+
+export const joinCommunity = async (req,res) => {
+    try{
+        const {communityId} = req.body;
+        const communityMember = await prisma.communityMember.create({
+            data:{
+                user_id:req.user.user_id,
+                community_id: communityId,
+                role: "Member"
+            }
+        })
+        return res.status(201).json({
+            message:"Successfully joined community",
+            communityMember:communityMember
+        })
+    }catch(err){
+        console.log("joinCommunity Error: ",err);
+        return res.status(500).json({error:"Cannot join community: Internal Server Error"});
+    }
+}

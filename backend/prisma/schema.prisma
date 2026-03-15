@@ -40,6 +40,7 @@ model User {
   notif_received Notification[]
   posts Post[]
   submitted_reports FlagReport[]
+  replies Reply[]
 }
 
 model Profile {
@@ -150,6 +151,7 @@ model Post{
   user User @relation(fields: [user_id],references: [user_id])
   community Community @relation(fields: [community_id],references: [community_id])
   attachments PostAttachment[]
+  replies Reply[]
   llm_audit_logs LLMAuditLog[]
   flag_reports FlagReport[]
 }
@@ -177,6 +179,18 @@ enum Decision{
   Accepted
   Rejected
   Flagged
+}
+
+model Reply{
+  reply_id String @id @default(uuid())
+  post_id String
+  user_id String
+  content String
+  created_at DateTime @default(now())
+
+  // relationship
+  post Post @relation(fields: [post_id], references: [post_id])
+  user User @relation (fields: [user_id], references: [user_id])
 }
 
 model LLMAuditLog{

@@ -4,6 +4,8 @@ import dotenv from 'dotenv'
 import authRoutes from './routes/authRoute.js'
 import communityRoutes from './routes/communityRoute.js'
 import resourceRoutes from './routes/resourceRoute.js'
+import discussionRoutes from './routes/discussionRoute.js'
+import replyRoutes from './routes/replyRoute.js'
 import cookieParser from 'cookie-parser'
 
 dotenv.config()
@@ -22,6 +24,8 @@ app.use(cookieParser())
 app.use('/api/auth',authRoutes)
 app.use('/api/community',communityRoutes)
 app.use('/api/resources',resourceRoutes)
+app.use('/api/discussions',discussionRoutes)
+app.use('/api/replies',replyRoutes)
 
 app.get('/',(req,res)=>{
     res.json({message:"campNexus Backend is online"})

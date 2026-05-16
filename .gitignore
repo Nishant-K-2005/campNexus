@@ -22,3 +22,10 @@ Thumbs.db
 #--- prisma ---
 /generated/prisma
 backend/prisma/dev.db
+
+
+# Python backend
+# Python
+python-backend/venv/
+__pycache__/
+python-backend/*.pyc

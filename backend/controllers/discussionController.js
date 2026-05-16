@@ -1,5 +1,6 @@
 import prisma from "../config/dbConnection.js";
 import { supabase } from "../config/supabaseClient.js";
+import { addContentToQueue } from "../utils/addToQueue.js";
 
 export const startDiscussion = async (req, res) => {
     try {
@@ -54,7 +55,8 @@ export const startDiscussion = async (req, res) => {
             }
             return [discussion, discussionAttachment]
         })
-
+        
+        await addContentToQueue(result[0].post_id) // Adding uploaded discussions to the moderation Queue.
         return res.status(201).json({
             message: "Discussion created successfully",
             discussion: result[0],
@@ -75,6 +77,7 @@ export const getDiscussions = async (req,res) => {
             where:{
                 community_id:communityId,
                 type:"Discussion",
+                status: "Accepted",
             },
             include:{
                 attachments:true,

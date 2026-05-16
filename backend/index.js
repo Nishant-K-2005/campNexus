@@ -1,12 +1,14 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
+import http from 'http'
 import authRoutes from './routes/authRoute.js'
 import communityRoutes from './routes/communityRoute.js'
 import resourceRoutes from './routes/resourceRoute.js'
 import discussionRoutes from './routes/discussionRoute.js'
 import replyRoutes from './routes/replyRoute.js'
-import cookieParser from 'cookie-parser'
+import { initSocket } from './socket/socket.js'
 
 dotenv.config()
 
@@ -18,6 +20,10 @@ app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }))
+
+const server = http.createServer(app)
+initSocket(server)
+
 app.use(express.json())
 app.use(cookieParser())
 
@@ -31,6 +37,6 @@ app.get('/',(req,res)=>{
     res.json({message:"campNexus Backend is online"})
 })
 
-app.listen(port,()=>{
+server.listen(port,()=>{
     console.log(`server running at http://localhost:${port}`)
 })

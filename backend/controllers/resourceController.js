@@ -1,5 +1,6 @@
 import prisma from "../config/dbConnection.js";
 import { supabase } from "../config/supabaseClient.js"
+import { addContentToQueue } from "../utils/addToQueue.js";
 
 export const uploadResource = async (req, res) => {
     try {
@@ -60,12 +61,14 @@ export const uploadResource = async (req, res) => {
 
         const newResource = result[0]
         const resourceAttachment = result[1]
-
+        addContentToQueue(result[0].post_id) // Adding uploaded resources to the moderation Queue.
         return res.status(201).json({
             message:"Resource uploaded successfuly",
             resource: newResource,
             attachment: resourceAttachment,
         })
+
+        addContentToQueue(result[0].post_id);
         
     } catch (err) {
         console.log("Upload Resource Error: ", err);
@@ -79,7 +82,8 @@ export const getResources = async (req,res) => {
         const resources = await prisma.post.findMany({
             where:{
                 community_id:communityId,
-                type: "Resource"
+                type: "Resource",
+                status: "Accepted",
             },
             include:{
                 attachments: true,

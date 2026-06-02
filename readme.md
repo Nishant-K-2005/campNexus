@@ -1,22 +1,22 @@
-# 🏕️ CampNexus
+# CampNexus
 > AI-Moderated, Semantic Campus Collaboration & Community Platform.
 
 CampNexus is a campus collaboration hub designed to connect **Students, Professors, Club Heads, and Administrators**. It features real-time notifications, a custom reputation/gamification system, and a **AI-powered content moderation & semantic matching pipeline** that uses LLMs and Sentence Transformer embeddings.
 
 ---
 
-## ✨ Features
+## Features
 
-- 👥 **Multi-Role Dashboards:** Custom user roles (`Student`, `Professor`, `ClubHead`, `Admin`) with dedicated workflows.
-- 🤖 **AI Content Moderation:** Automatically audits submitted posts using LLM scoring to approve, reject, or flag content in real-time.
-- 🎯 **Semantic Similarity Scoring:** Uses 384-dimensional dense vector embeddings (`BAAI/bge-small-en-v1.5`) to match posts and profiles to community tags via cosine similarity.
-- 📄 **Universal File Parser:** Automatically extracts and analyzes text from uploaded **PDFs, Word Docs, PowerPoint Presentations, Excel Sheets, CSVs**, and **Images (using OCR)**.
-- 🏆 **Gamification & Reputation:** Track reputation points and reward helpful members with custom badge unlocks.
-- ⚡ **Real-Time Sockets:** Immediate WebSocket feedback (via Socket.io) when posts are approved or rejected by the background AI workers.
+- **Multi-Role Dashboards:** Custom user roles (`Student`, `Professor`, `ClubHead`, `Admin`) with dedicated workflows.
+- **AI Content Moderation:** Automatically audits submitted posts using LLM scoring to approve, reject, or flag content in real-time.
+- **Semantic Similarity Scoring:** Uses 384-dimensional dense vector embeddings (`BAAI/bge-small-en-v1.5`) to match posts and profiles to community tags via cosine similarity.
+- **Universal File Parser:** Automatically extracts and analyzes text from uploaded **PDFs, Word Docs, PowerPoint Presentations, Excel Sheets, CSVs**, and **Images (using OCR)**.
+- **Gamification & Reputation:** Track reputation points and reward helpful members with custom badge unlocks.
+- **Real-Time Sockets:** Immediate WebSocket feedback (via Socket.io) when posts are approved or rejected by the background AI workers.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Framework:** Next.js (React)
@@ -39,7 +39,7 @@ CampNexus is a campus collaboration hub designed to connect **Students, Professo
 
 ---
 
-## 🏗️ System Architecture & Data Flow
+## System Architecture & Data Flow
 
 ```mermaid
 sequenceDiagram
@@ -89,7 +89,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 Make sure you have the following installed on your system:
@@ -187,12 +187,3 @@ Make sure you have the following installed on your system:
    npm run dev
    ```
 4. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
-
----
-
-## 🐛 Code Quality & Known Issues
-
-> [!TIP]
-> **Issue in `backend/workers/worker.js` (Line 77):**
-> The worker attempts to publish an undefined variable `postId` over Redis. 
-> To resolve this, locate `worker.js` and change `postId` to `id` in the `worker_notification` payload.

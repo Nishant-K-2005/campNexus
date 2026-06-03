@@ -1,29 +1,11 @@
 import prisma from "../config/dbConnection.js";
+import { create_community_service, get_community_service, join_community_service } from "../services/community.service.js";
 
 export const createCommunity = async (req, res)=>{
     try{
         const { name, description, tags } = req.body;
         const user = req.user;
-        const result = await prisma.$transaction(async (tx) => {
-            const community = await tx.community.create({
-                data:{
-                    name,
-                    description,
-                    tags,
-                    created_by_user_id: user.user_id,
-                }
-            })
-            const communityMember = await tx.communityMember.create({
-                data:{
-                    user_id: user.user_id,
-                    community_id: community.community_id,
-                    role: "Moderator",
-                }
-            })
-            return [community, communityMember];
-        })
-        const newCommunity = result[0];
-        const newCommunityMember = result[1];
+        const [newCommunity,newCommunityMember] = await create_community_service({name, description, tags, user_id:user.user_id})
         return res.status(201).json({
             message:"successfully created Community",
             community: newCommunity,
@@ -39,27 +21,7 @@ export const createCommunity = async (req, res)=>{
 export const getCommunities = async (req, res) => {
     try{
         const user = req.user;
-        const memberships = await prisma.communityMember.findMany({
-            where:{user_id:user.user_id},
-            select:{
-                role:true,
-                community:{
-                    select:{
-                        community_id: true,
-                        name:true,
-                        description: true,
-                        tags:true,
-                    }
-                }
-            }
-        })
-        const communities = memberships.map(membership=>({
-            community_id:membership.community.community_id,
-            name: membership.community.name,
-            description: membership.community.description,
-            tags: membership.community.tags,
-            role: membership.role,
-        }))
+        const communities = await get_community_service(user.user_id)
         return res.status(200).json({
             message:"Communities fetched successfully",
             communities: communities
@@ -73,13 +35,7 @@ export const getCommunities = async (req, res) => {
 export const joinCommunity = async (req,res) => {
     try{
         const {communityId} = req.body;
-        const communityMember = await prisma.communityMember.create({
-            data:{
-                user_id:req.user.user_id,
-                community_id: communityId,
-                role: "Member"
-            }
-        })
+        const communityMember = await join_community_service(req.user.user_id, communityId)
         return res.status(201).json({
             message:"Successfully joined community",
             communityMember:communityMember

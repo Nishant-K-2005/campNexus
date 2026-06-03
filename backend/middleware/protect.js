@@ -1,5 +1,6 @@
 import prisma from "../config/dbConnection.js"
 import jwt from "jsonwebtoken"
+import { findUserById } from "../repositories/user.repo.js";
 
 const protect = async (req,res,next) => {
     try{
@@ -12,35 +13,21 @@ const protect = async (req,res,next) => {
         if(!decoded || !decoded.userId){
             return res.status(401).json({error:"Unauthorized: Invalid token"});
         }
-        const user = await prisma.user.findUnique({
-            where:{
-                user_id:decoded.userId,
-            },
-            select:{
-                user_id:true,
-                email:true,
-                full_name:true,
-                role:true,
-                reputation_points:true,
-                profile: true,
-            },
-        })
+        const user = await findUserById(decoded.userId)
         if(!user){
             return res.status(404).json({error:"user not found"})
         }
+        delete user.pass_hash
         req.user = user;
-        req.profile = user.profile
         next();
     }catch(err){
         console.log("Auth middleware error: ",err.message);
-
         if (err.name === "TokenExpiredError") {
              return res.status(401).json({ error: "Unauthorized: Token expired" });
         }
         if (err.name === "JsonWebTokenError") {
              return res.status(401).json({ error: "Unauthorized: Invalid token" });
         }
-
         res.status(500).json({error:"Something went wrong"});
     }
 }

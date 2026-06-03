@@ -1,17 +1,12 @@
-import IOredis from 'ioredis'
+import IOredis, { Redis } from 'ioredis'
 
-export const redisConnection = new IOredis({
+const redisConfig = {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
     username: process.env.REDIS_USERNAME,
     password: process.env.REDIS_PASSWORD,
     maxRetriesPerRequest: null
-})
+}
 
-export const redisSubscriber = new IOredis({
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-    username: process.env.REDIS_USERNAME,
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null
-})
+export const redisConnection = new Redis(redisConfig)
+export const redisSubscriber = redisConnection.duplicate()

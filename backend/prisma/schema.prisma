@@ -7,7 +7,7 @@
 generator client {
   provider   = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
-  
+
 }
 
 datasource db {
@@ -28,16 +28,15 @@ model User {
   email String @unique
   pass_hash String
   full_name String
-  role Role 
-  reputation_points Int @default(0)
+  role Role
   created_at DateTime @default(now())
+  deleted_at DateTime?
+  purge_at DateTime?
 
   // Relationships
   profile Profile?
   created_communities Community[] @relation("community_creator")
   community_member CommunityMember[]
-  badges_earned UserBadge[]
-  notif_received Notification[]
   posts Post[]
   submitted_reports FlagReport[]
   replies Reply[]
@@ -48,12 +47,13 @@ model Profile {
   user_id String @unique
   bio String?
   interested_tags String[]
+  reputation_points Int @default(0)
   tags_vector Unsupported("vector(384)")?
   open_to_mentoring Boolean @default(false)
   portfolio_link String?
 
   // Relationships
-  user User @relation(fields: [user_id],references: [user_id])
+  user User @relation(fields: [user_id],references: [user_id], onDelete:Cascade)
 }
 
 model Community {
@@ -61,15 +61,18 @@ model Community {
   name String
   description String?
   tags String[]
-  created_by_user_id String 
+  embedding_vector Unsupported("vector(384)")?
+  created_by_user_id String
+  deleted_at DateTime?
+  purge_at DateTime?
 
   // Relationships
-  created_by_user User @relation("community_creator",fields: [created_by_user_id],references: [user_id])
+  created_by_user User @relation("community_creator",fields: [created_by_user_id],references: [user_id], onDelete:Cascade)
   members CommunityMember[]
   posts Post[]
 }
 
-enum CommunityRole{
+enum CommunityMemberRole{
   Member
   Moderator
 }
@@ -78,50 +81,13 @@ model CommunityMember {
   user_id String
   community_id String
   @@id([user_id,community_id])
-  role CommunityRole @default(Member)
+  role CommunityMemberRole @default(Member)
   joined_at DateTime @default(now())
+  left_at DateTime?
 
   // Relationships
-  user User @relation(fields: [user_id],references: [user_id])
-  community Community @relation(fields: [community_id],references: [community_id])
-}
-
-model Badge{
-  badge_id String @id @default(uuid())
-  name String
-  icon_url String
-  points_threshold Int
-
-  // relationships
-  awarded_to UserBadge[]
-}
-
-model UserBadge{
-  user_id String
-  badge_id String
-  awarded_at DateTime @default(now())
-  @@id([user_id,badge_id])
-
-  // relationships
-  user User @relation(fields: [user_id],references: [user_id])
-  badge Badge @relation(fields: [badge_id],references: [badge_id])
-}
-
-enum NotificationType{
-  Standard
-  Priority
-}
-
-model Notification{
-  notif_id String @id @default(uuid())
-  user_id String
-  content String
-  type NotificationType @default(Standard)
-  is_read Boolean @default(false)
-  created_at DateTime @default(now())
-
-  // relationship
-  user User @relation(fields: [user_id],references: [user_id])
+  user User @relation(fields: [user_id],references: [user_id], onDelete:Cascade)
+  community Community @relation(fields: [community_id], references: [community_id], onDelete: Cascade)
 }
 
 enum PostType{
@@ -146,10 +112,12 @@ model Post{
   status PostStatus @default(Pending)
   embedding_vector Unsupported("vector(384)")?
   created_at DateTime @default(now())
+  deleted_at DateTime?
+  purge_at DateTime?
 
   // relationship
-  user User @relation(fields: [user_id],references: [user_id])
-  community Community @relation(fields: [community_id],references: [community_id])
+  user User @relation(fields: [user_id],references: [user_id], onDelete: Cascade)
+  community Community @relation(fields: [community_id],references: [community_id], onDelete: Cascade)
   attachments PostAttachment[]
   replies Reply[]
   llm_audit_logs LLMAuditLog[]
@@ -172,7 +140,7 @@ model PostAttachment{
   isVerified Boolean @default(false)
 
   // relationships
-  post Post @relation(fields: [post_id], references: [post_id])
+  post Post @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
 }
 
 enum Decision{
@@ -186,23 +154,30 @@ model Reply{
   post_id String
   user_id String
   content String
+  depth Int @default(0)
   created_at DateTime @default(now())
+  parent_id String?
+  deleted_at DateTime?
+  purge_at DateTime?
 
   // relationship
-  post Post @relation(fields: [post_id], references: [post_id])
-  user User @relation (fields: [user_id], references: [user_id])
+  post Post @relation(fields: [post_id], references: [post_id], onDelete:Cascade)
+  user User @relation (fields: [user_id], references: [user_id], onDelete:Cascade)
+  parent Reply? @relation("ReplyTree",fields: [parent_id], references: [reply_id], onDelete: Cascade)
+  replies Reply[] @relation("ReplyTree")
+
 }
 
 model LLMAuditLog{
   log_id String @id @default(uuid())
   post_id String
-  decision Decision 
+  decision Decision
   reason String?
   confidenceScore Float
   processed_at DateTime @default(now())
 
   // relationship
-  post Post @relation(fields: [post_id],references: [post_id])
+  post Post @relation(fields: [post_id],references: [post_id], onDelete:Cascade)
 }
 
 enum FlagStatus{
@@ -219,6 +194,6 @@ model FlagReport{
   status FlagStatus @default(Open)
 
   // relationship
-  post Post @relation(fields: [post_id],references: [post_id])
-  reporter User @relation(fields: [reporter_user_id],references: [user_id])
+  post Post @relation(fields: [post_id],references: [post_id], onDelete:Cascade)
+  reporter User @relation(fields: [reporter_user_id],references: [user_id], onDelete:Cascade)
 }

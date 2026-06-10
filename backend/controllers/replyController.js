@@ -1,14 +1,14 @@
-import prisma from "../config/dbConnection.js";
+import { get_replies_service, send_reply_service } from "../services/reply.service.js";
 
 export const sendReply = async (req,res) =>{
     try{
-        const {postId, content} = req.body;
-        const reply = await prisma.reply.create({
-            data:{
-                post_id:postId,
-                user_id:req.user.user_id,
-                content:content,
-            }
+        const {postId, content, parent_id} = req.body;
+        
+        const reply = await send_reply_service({
+            user_id: req.user.user_id, 
+            post_id: postId, 
+            parent_id,
+            content,
         })
         return res.status(201).json({
             message:"Reply sent successfully",
@@ -23,24 +23,8 @@ export const sendReply = async (req,res) =>{
 export const getReplies = async (req,res) =>{
     try{
         const postId = req.params.postId
-        const replies = await prisma.reply.findMany({
-            where:{
-                post_id:postId
-            },
-            include:{
-                user:{
-                    select:{
-                        user_id:true,
-                        email:true,
-                        full_name:true,
-                        role:true,
-                    }
-                }
-            },
-            orderBy:{
-                created_at:"desc",
-            }
-        })
+        const {parent_id} = req.query
+        const replies = await get_replies_service(postId,parent_id)
         return res.status(200).json({
             message:"Successfully fetched Replies",
             replies:replies,

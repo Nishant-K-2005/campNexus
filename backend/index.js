@@ -28,10 +28,10 @@ initSocket(server)
 
 
 app.use('/api/auth',authRoutes)
-app.use('/api/community',communityRoutes)
-app.use('/api/resources',resourceRoutes)
-app.use('/api/discussions',discussionRoutes)
-app.use('/api/replies',replyRoutes)
+app.use('/api',communityRoutes)
+app.use('/api',resourceRoutes)
+app.use('/api',discussionRoutes)
+app.use('/api',replyRoutes)
 
 app.get('/',(req,res)=>{
     res.json({message:"campNexus Backend is online"})

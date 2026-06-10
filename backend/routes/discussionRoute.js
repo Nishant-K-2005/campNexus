@@ -5,7 +5,7 @@ import { upload } from '../middleware/uploadMiddleware.js'
 
 const router = express.Router()
 
-router.post('/startDiscussion', protect,upload.single('file'), startDiscussion);
-router.get('/getDiscussions/:communityId',protect,getDiscussions);
+router.post('/discussions', protect,upload.single('file'), startDiscussion);
+router.get('/discussions/:communityId',protect,getDiscussions);
 
 export default router;

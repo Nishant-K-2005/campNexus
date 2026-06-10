@@ -5,7 +5,7 @@ import { upload } from "../middleware/uploadMiddleware.js"
 
 const router = express.Router()
 
-router.post('/uploadResource',protect,upload.single('file'),uploadResource);
-router.get('/getResources/:communityId',protect,getResources)
+router.post('/resources',protect,upload.single('file'),uploadResource);
+router.get('/resources/:communityId',protect,getResources)
 
 export default router

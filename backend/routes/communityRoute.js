@@ -6,8 +6,8 @@ import { createCommunitySchema } from "../validations/community.validate.js";
 
 const router = express.Router()
 
-router.post('/createCommunity', validate(createCommunitySchema),protect,createCommunity);
-router.get('/getCommunities',protect,getCommunities);
-router.post('/joinCommunity',protect,joinCommunity);
+router.post('/communities', validate(createCommunitySchema),protect,createCommunity);
+router.get('/communities',protect,getCommunities);
+router.post('/communities/:communityId/members',protect,joinCommunity);
 
 export default router;

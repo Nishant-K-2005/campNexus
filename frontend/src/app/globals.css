@@ -1,9 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+
+/* ═══════════════════════════════════════════
+   CAMPNEXUS DESIGN SYSTEM
+   Premium SaaS Platform
+═══════════════════════════════════════════ */
+
 
 @theme inline {
   --color-background: var(--background);
@@ -48,26 +53,40 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-
-::selection {
-  background: rgba(255, 255, 255, 0.18);
-}
-
+/* ─── LIGHT THEME ─────────────────────────── */
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+
+  /* CampNexus Light Palette */
+  --cn-bg:         #F8FAFC;
+  --cn-surface:    #FFFFFF;
+  --cn-surface-2:  #F1F5F9;
+  --cn-card:       #FFFFFF;
+  --cn-border:     #E2E8F0;
+  --cn-border-2:   #CBD5E1;
+  --cn-primary:    #4F46E5;
+  --cn-primary-h:  #4338CA;
+  --cn-primary-l:  #EEF2FF;
+  --cn-accent:     #06B6D4;
+  --cn-success:    #10B981;
+  --cn-warning:    #F59E0B;
+  --cn-danger:     #EF4444;
+  --cn-text:       #0F172A;
+  --cn-text-2:     #334155;
+  --cn-text-3:     #64748B;
+  --cn-text-4:     #94A3B8;
+  --cn-shadow:     0 1px 3px rgba(15,23,42,0.08), 0 4px 16px rgba(15,23,42,0.06);
+  --cn-shadow-lg:  0 8px 32px rgba(79,70,229,0.12), 0 2px 8px rgba(15,23,42,0.06);
+  --cn-glow:       0 0 40px rgba(79,70,229,0.15);
+
+  /* Shadcn compat */
+  --background: oklch(0.985 0.002 247);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
+  --primary: oklch(0.491 0.216 264.376);
   --primary-foreground: oklch(0.984 0.003 247.858);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
@@ -78,7 +97,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --ring: oklch(0.491 0.216 264.376);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -86,22 +105,46 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.984 0.003 247.858);
   --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary: oklch(0.491 0.216 264.376);
   --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
   --sidebar-accent: oklch(0.968 0.007 247.896);
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --sidebar-ring: oklch(0.491 0.216 264.376);
 }
 
+/* ─── DARK THEME ──────────────────────────── */
 .dark {
+  /* CampNexus Dark Palette */
+  --cn-bg:         #0F172A;
+  --cn-surface:    #111827;
+  --cn-surface-2:  #1A2540;
+  --cn-card:       #1E293B;
+  --cn-border:     rgba(255,255,255,0.08);
+  --cn-border-2:   rgba(255,255,255,0.12);
+  --cn-primary:    #6366F1;
+  --cn-primary-h:  #818CF8;
+  --cn-primary-l:  rgba(99,102,241,0.15);
+  --cn-accent:     #22D3EE;
+  --cn-success:    #34D399;
+  --cn-warning:    #FBBF24;
+  --cn-danger:     #F87171;
+  --cn-text:       #F8FAFC;
+  --cn-text-2:     #E2E8F0;
+  --cn-text-3:     #94A3B8;
+  --cn-text-4:     #475569;
+  --cn-shadow:     0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+  --cn-shadow-lg:  0 8px 32px rgba(99,102,241,0.2), 0 2px 8px rgba(0,0,0,0.3);
+  --cn-glow:       0 0 40px rgba(99,102,241,0.25);
+
+  /* Shadcn compat */
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
   --card-foreground: oklch(0.984 0.003 247.858);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
+  --primary: oklch(0.606 0.214 264.376);
   --primary-foreground: oklch(0.208 0.042 265.755);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
@@ -120,7 +163,7 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.208 0.042 265.755);
   --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.606 0.214 264.376);
   --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
   --sidebar-accent: oklch(0.279 0.041 260.031);
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
@@ -128,13 +171,229 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* ─── BASE STYLES ─────────────────────────── */
+::selection {
+  background: rgba(99, 102, 241, 0.25);
+  color: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter), var(--font-plus-jakarta-sans), system-ui, sans-serif;
+  background-color: var(--cn-bg);
+  color: var(--cn-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── THEME TRANSITION ────────────────────── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Exclude transitions from elements that shouldn't have them */
+.no-transition,
+.no-transition *,
+[data-no-transition],
+[data-no-transition] * {
+  transition: none !important;
+}
+
+/* ─── SCROLLBAR ───────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cn-border-2);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cn-primary);
+}
+
+/* ─── UTILITY CLASSES ─────────────────────── */
+.cn-card {
+  background: var(--cn-card);
+  border: 1px solid var(--cn-border);
+  border-radius: 12px;
+  box-shadow: var(--cn-shadow);
+}
+
+.cn-surface {
+  background: var(--cn-surface);
+  border: 1px solid var(--cn-border);
+}
+
+.cn-glass {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.dark .cn-glass {
+  background: rgba(255,255,255,0.03);
+}
+
+.cn-btn-primary {
+  background: var(--cn-primary);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.cn-btn-primary:hover {
+  background: var(--cn-primary-h);
+  transform: translateY(-1px);
+  box-shadow: var(--cn-shadow-lg);
+}
+.cn-btn-primary:active {
+  transform: translateY(0);
+}
+.cn-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cn-input {
+  background: var(--cn-surface);
+  border: 1.5px solid var(--cn-border);
+  border-radius: 10px;
+  color: var(--cn-text);
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cn-input:focus {
+  border-color: var(--cn-primary);
+  box-shadow: 0 0 0 3px var(--cn-primary-l);
+}
+.cn-input::placeholder {
+  color: var(--cn-text-4);
+}
+
+.cn-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cn-text-2);
+  margin-bottom: 0.375rem;
+  display: block;
+}
+
+/* ─── GRADIENT MESH ───────────────────────── */
+.cn-mesh-light {
+  background:
+    radial-gradient(at 0% 0%, hsla(262,100%,95%,0.6) 0px, transparent 60%),
+    radial-gradient(at 100% 0%, hsla(213,100%,95%,0.5) 0px, transparent 60%),
+    radial-gradient(at 50% 100%, hsla(248,100%,95%,0.4) 0px, transparent 60%),
+    #F8FAFC;
+}
+
+.cn-mesh-dark {
+  background:
+    radial-gradient(at 0% 0%, hsla(248,60%,12%,1) 0px, transparent 60%),
+    radial-gradient(at 100% 0%, hsla(213,60%,8%,1) 0px, transparent 60%),
+    radial-gradient(at 50% 100%, hsla(262,60%,10%,1) 0px, transparent 60%),
+    #0F172A;
+}
+
+/* ─── ANIMATIONS ──────────────────────────── */
+@keyframes cn-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes cn-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.3); }
+  50% { box-shadow: 0 0 40px rgba(99,102,241,0.6); }
+}
+
+@keyframes cn-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes cn-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cn-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cn-slide-in-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.cn-animate-float { animation: cn-float 4s ease-in-out infinite; }
+.cn-animate-pulse-glow { animation: cn-pulse-glow 2s ease-in-out infinite; }
+.cn-animate-spin { animation: cn-spin 1s linear infinite; }
+.cn-animate-fade-in { animation: cn-fade-in 0.5s ease forwards; }
+.cn-animate-slide-left { animation: cn-slide-in-left 0.4s ease forwards; }
+
+/* ─── SKELETON LOADING ────────────────────── */
+.cn-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--cn-surface-2) 25%,
+    var(--cn-border) 50%,
+    var(--cn-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: cn-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ─── BADGE ───────────────────────────────── */
+.cn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cn-badge-primary { background: var(--cn-primary-l); color: var(--cn-primary); }
+.cn-badge-success { background: rgba(16,185,129,0.1); color: var(--cn-success); }
+.cn-badge-warning { background: rgba(245,158,11,0.1); color: var(--cn-warning); }
+.cn-badge-danger  { background: rgba(239,68,68,0.1);  color: var(--cn-danger); }
+
+/* ─── SHADCN BASE ─────────────────────────── */
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
     @apply bg-background text-foreground;
   }
 }

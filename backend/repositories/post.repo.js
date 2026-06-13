@@ -8,6 +8,7 @@ export const getPostsByCommunityId = (community_id, type) => {
             community_id,
             type,
             status: "Accepted",
+            deleted_at:null,
         },
         include: {
             attachments: true,
@@ -21,7 +22,10 @@ export const getPostsByCommunityId = (community_id, type) => {
 
 export const getPostById = (post_id) => {
     return prisma.post.findFirst({
-        where:{post_id,deleted_at:null},
+        where:{
+            post_id,
+            deleted_at:null
+        },
         include:{attachments: true}
     })
 }
@@ -62,7 +66,7 @@ export const updatePostEmbedding = (id, embedding) => {
     return prisma.$executeRaw`
         UPDATE "Post"
         SET embedding_vector = ${`[${embedding.join(",")}]`}::vector
-        WHERE post_id = ${id}
+        WHERE post_id = ${id} AND deleted_at IS NULL
     `;
 }
 
@@ -73,6 +77,18 @@ export const getPostEmbedding = (id) => {
         community_id,
         embedding_vector::text AS embedding_vector
         FROM "Post"
-        WHERE post_id = ${id}
+        WHERE post_id = ${id} AND deleted_at IS NULL
     `;
+}
+
+export const deletePostById = (post_id) => {
+    return prisma.post.update({
+        where:{
+            post_id,
+            deleted_at:null
+        },
+        data:{
+            deleted_at: new Date()
+        }
+    })
 }

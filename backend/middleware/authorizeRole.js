@@ -6,3 +6,4 @@ const authorizeRole = (...allowedRoles) => {
         next();
     }
 }
+export default authorizeRole

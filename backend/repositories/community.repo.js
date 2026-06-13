@@ -2,7 +2,10 @@ import prisma from "../config/dbConnection.js";
 
 export const getCommunitiesJoinedByUser = (user_id) => {
     return prisma.communityMember.findMany({
-        where: { user_id },
+        where: { 
+            user_id,
+            left_at: null,
+        },
         select: {
             role: true,
             community: true,
@@ -11,8 +14,8 @@ export const getCommunitiesJoinedByUser = (user_id) => {
 }
 
 export const getCommunityById = (community_id) => {
-    return prisma.community.findUnique({
-        where: { community_id }
+    return prisma.community.findFirst({
+        where: { community_id, deleted_at:null }
     })
 }
 
@@ -47,9 +50,12 @@ export const createCommunity = ({ name, description, tags, user_id }) => {
     })
 }
 
-export const updateCommunity = (id, changes) => {
+export const updateCommunity = (community_id, changes) => {
     return prisma.community.update({
-        where: { community_id: id },
+        where: { 
+            community_id, 
+            deleted_at:null 
+        },
         data: changes,
     })
 }
@@ -58,7 +64,7 @@ export const updateCommunityEmbedding = (id, embedding) => {
     return prisma.$executeRaw`
         UPDATE "Community"
         SET embedding_vector = ${`[${embedding.join(",")}]`}::vector
-        WHERE community_id = ${id}
+        WHERE community_id = ${id} AND deleted_at IS NULL
     `;
 }
 
@@ -66,6 +72,15 @@ export const getCommunityEmbedding = (id) => {
     return prisma.$queryRaw`
         SELECT embedding_vector::text AS embedding_vector
         FROM "Community"
-        WHERE community_id = ${id}
+        WHERE community_id = ${id} AND deleted_at IS NULL
     `;
+}
+
+export const deleteCommunityById = (community_id) => {
+    return prisma.community.update({
+        where:{community_id},
+        data:{
+            deleted_at:new Date(),
+        }
+    })
 }

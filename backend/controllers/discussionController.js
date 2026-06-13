@@ -1,4 +1,6 @@
-import { get_discussions_service, start_discussion_service } from "../services/discussion.service.js";
+import { get_discussions_service, start_discussion_service, delete_discussion_service } from "../services/discussion.service.js";
+import { getCommunityById } from "../repositories/community.repo.js";
+import { getPostById } from "../repositories/post.repo.js";
 
 export const startDiscussion = async (req, res) => {
     try {
@@ -29,5 +31,17 @@ export const getDiscussions = async (req,res) => {
     }catch(err){
         console.log("getDiscussion Error: ",err)
         return res.status(500).json({error:"Cannot fetch error: Internal Server Error"})
+    }
+}
+
+export const deleteDiscussion = async (req,res) => {
+    try{
+        const {post_id} = req.params;
+        const user = req.user;
+        await delete_discussion_service(post_id, user);
+        return res.sendStatus(204)
+    }catch(err){
+        console.log(err.message);
+        return res.status(err.status || 500).json({error:err.message || "Something went wrong"})
     }
 }

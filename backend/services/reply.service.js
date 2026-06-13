@@ -1,4 +1,6 @@
-import { createReply, getReplies, getReply } from "../repositories/reply.repo.js"
+import { createReply, deleteReplyById, getRepliesByPostId, getReplyById } from "../repositories/reply.repo.js"
+import {AppError} from '../errors/app.error.js'
+import {getPostById} from '../repositories/post.repo.js'
 
 export const send_reply_service = async ({ user_id,
     post_id,
@@ -7,7 +9,7 @@ export const send_reply_service = async ({ user_id,
 }) => {
     let depth = 0;
     if (parent_id) {
-        const parent = await getReply(parent_id);
+        const parent = await getReplyById(parent_id);
         if(!parent){
             throw new Error("parent reply not found")
         }
@@ -26,5 +28,20 @@ export const send_reply_service = async ({ user_id,
 }
 
 export const get_replies_service = async (post_id, parent_id = null) => {
-    return await getReplies(post_id, parent_id);
+    return await getRepliesByPostId(post_id, parent_id);
+}
+
+export const delete_reply_service = async (reply_id, user) => {
+    const reply = await getReplyById(reply_id);
+    if(!reply){
+        throw new AppError("Reply not found",404);
+    }
+    const post = await getPostById(reply.post_id);
+    if(!post){
+        throw new AppError("Post not found",404);
+    }
+    if(user.role!=='Admin' && user.user_id!==reply.user_id && user.user_id!==post.user_id){
+        throw new AppError("Unauthorized",403);
+    }
+    return await deleteReplyById(reply_id);
 }

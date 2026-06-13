@@ -12,7 +12,7 @@ export const createReply = ({user_id, post_id, parent_id, content, depth}) => {
     })
 }
 
-export const getReplies = (post_id,parent_id=null) => {
+export const getRepliesByPostId = (post_id,parent_id=null) => {
     return prisma.reply.findMany({
         where: {
           post_id,
@@ -34,9 +34,16 @@ export const getReplies = (post_id,parent_id=null) => {
     })
 }
 
-export const getReply = (reply_id) => {
-    console.log(reply_id,parent_id);
+export const getReplyById = (reply_id) => {
     return prisma.reply.findFirst({
+        where:{
+            reply_id,
+        }
+    })
+}
+
+export const deleteReplyById = (reply_id) => {
+    return prisma.reply.delete({
         where:{
             reply_id,
         }

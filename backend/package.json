@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js && node --env-file=.env workers/worker.js",
+    "dev": "nodemon index.js",
     "start": "node index.js",
-    "worker": "node --env-file=.env workers/worker.js",
-    "backend": "nodemon index.js"
+    "ai-worker": "nodemon --env-file=.env workers/ai.worker.js"
   },
   "keywords": [],
   "author": "",

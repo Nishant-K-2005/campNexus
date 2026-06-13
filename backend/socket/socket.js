@@ -28,7 +28,6 @@ export const initSocket = (server) => {
     })
     redisSubscriber.on("message", (channel, message) => {
         try{
-
             if (channel === "worker_notification") {
                 const notifyData = JSON.parse(message)
                 io.to("user_"+notifyData.userId.toString()).emit("moderation-data", notifyData)
@@ -37,4 +36,12 @@ export const initSocket = (server) => {
             console.log(`error parsing redis message on channel ${channel}: `,err.message)
         }
     })
+}
+
+export const getIo = () => {
+    if(io){ 
+        return io
+    }else{
+        throw new Error("io not initialized")
+    }
 }

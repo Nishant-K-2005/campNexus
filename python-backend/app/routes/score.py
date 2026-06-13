@@ -1,4 +1,5 @@
 from fastapi import APIRouter,UploadFile,File,Form
+from fastapi import Body
 from typing import List
 from app.services.img_parsing_service import getTextFromImg
 from app.services.similarity_service import calculateSimilarity
@@ -12,8 +13,8 @@ router = APIRouter(
 
 @router.post("/scores")
 async def getScore(
-    categoryEmbedding: List[float],
-    contentEmbedding: List[float]
+    categoryEmbedding: List[float] = Body(...),
+    contentEmbedding: List[float] = Body(...)
     ):
     
     data = calculateSimilarity(categoryEmbedding,contentEmbedding)

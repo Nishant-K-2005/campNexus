@@ -1,0 +1,8 @@
+**PyMuPDF** for parsing pdf to text (python library)
+**python-pptx** for parsing pptx content to text (python library)
+**python-docx** for parsing docs to text (python library)
+**pandas** for parsing csv/xls to text (python library)
+**NumPy and scikit-learn** for similarity calculation (python library)
+**cnmoro/tiny-image-captioning** for image captioning (HF model)
+**bge-small-en-v1.5** for getting text embeddings (HF model)
+**ocr.space/OCRAPI** for getting text out of Image (online ocr service)

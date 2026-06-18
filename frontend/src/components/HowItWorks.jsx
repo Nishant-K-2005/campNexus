@@ -100,7 +100,7 @@ const SvgVerified = () => (
       width="46"
       height="10"
       rx="5"
-      fill="white"
+      fill="currentColor"
       opacity="0.08"
     />
     <rect
@@ -109,7 +109,7 @@ const SvgVerified = () => (
       width="62"
       height="10"
       rx="5"
-      fill="white"
+      fill="currentColor"
       opacity="0.08"
     />
     <rect
@@ -118,7 +118,7 @@ const SvgVerified = () => (
       width="38"
       height="10"
       rx="5"
-      fill="white"
+      fill="currentColor"
       opacity="0.08"
     />
 
@@ -128,7 +128,7 @@ const SvgVerified = () => (
       width="48"
       height="10"
       rx="5"
-      fill="white"
+      fill="currentColor"
       opacity="0.08"
     />
     <rect
@@ -137,7 +137,7 @@ const SvgVerified = () => (
       width="62"
       height="10"
       rx="5"
-      fill="white"
+      fill="currentColor"
       opacity="0.08"
     />
     <rect
@@ -146,7 +146,7 @@ const SvgVerified = () => (
       width="40"
       height="10"
       rx="5"
-      fill="white"
+      fill="currentColor"
       opacity="0.08"
     />
   </svg>
@@ -175,8 +175,8 @@ const SvgDiscuss = () => (
       opacity="0.95"
     />
     {/* chat lines */}
-    <rect x="50" y="30" width="62" height="8" rx="4" fill="white" opacity="0.10" />
-    <rect x="50" y="44" width="42" height="8" rx="4" fill="white" opacity="0.10" />
+    <rect x="50" y="30" width="62" height="8" rx="4" fill="currentColor" opacity="0.10" />
+    <rect x="50" y="44" width="42" height="8" rx="4" fill="currentColor" opacity="0.10" />
 
     {/* chat bubble 2 */}
     <path
@@ -185,8 +185,8 @@ const SvgDiscuss = () => (
       strokeWidth="2"
       opacity="0.95"
     />
-    <rect x="128" y="44" width="56" height="8" rx="4" fill="white" opacity="0.10" />
-    <rect x="128" y="58" width="34" height="8" rx="4" fill="white" opacity="0.10" />
+    <rect x="128" y="44" width="56" height="8" rx="4" fill="currentColor" opacity="0.10" />
+    <rect x="128" y="58" width="34" height="8" rx="4" fill="currentColor" opacity="0.10" />
   </svg>
 );
 
@@ -210,13 +210,13 @@ const steps = [
 
 function HowItWorks() {
   return (
-    <section id="how" className="bg-[#060B1A] py-20">
+    <section id="how" className="py-20 transition-colors duration-300" style={{ background: "var(--cn-bg)" }}>
       <div className="max-w-7xl mx-auto px-6">
         <Reveal>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            How Campnexus works
+          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: "var(--cn-text)" }}>
+            How CampNexus works
           </h2>
-          <p className="mt-3 text-slate-300 max-w-2xl">
+          <p className="mt-3 max-w-2xl text-sm" style={{ color: "var(--cn-text-3)" }}>
             Simple flow — discover → verify → collaborate.
           </p>
         </Reveal>
@@ -227,21 +227,42 @@ function HowItWorks() {
 
             return (
               <Reveal key={s.title} delay={idx * 0.08}>
-                <div className="rounded-2xl bg-white/5 border border-white/10 shadow-xl shadow-indigo-500/10 p-6 backdrop-blur hover:translate-y-[-2px] transition-transform">
-                  <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-400/20 flex items-center justify-center text-indigo-300 font-bold">
+                <div
+                  className="rounded-2xl p-6 transition-all duration-200"
+                  style={{
+                    background: "var(--cn-card)",
+                    border: "1px solid var(--cn-border)",
+                    boxShadow: "var(--cn-shadow)",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--cn-shadow-lg)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "var(--cn-shadow)"; }}
+                >
+                  <div
+                    className="h-10 w-10 rounded-xl flex items-center justify-center font-bold"
+                    style={{
+                      background: "var(--cn-primary-l)",
+                      border: "1px solid rgba(99,102,241,0.2)",
+                      color: "var(--cn-primary)",
+                    }}
+                  >
                     {idx + 1}
                   </div>
 
-                  <h3 className="mt-4 text-white font-bold text-lg">{s.title}</h3>
-                  <p className="mt-2 text-slate-300">{s.desc}</p>
+                  <h3 className="mt-4 font-bold text-lg" style={{ color: "var(--cn-text)" }}>{s.title}</h3>
+                  <p className="mt-2 text-xs sm:text-sm" style={{ color: "var(--cn-text-3)" }}>{s.desc}</p>
 
                   {/* SVG preview box */}
-                  <div className="mt-5 h-100 rounded-xl bg-white/5 border border-white/10 p-3 overflow-hidden relative">
-                    <div className="absolute inset-0 opacity-35 bg-[radial-gradient(#1d2a52_1px,transparent_1px)] [background-size:18px_18px]" />
+                  <div
+                    className="mt-5 h-[200px] rounded-xl p-3 overflow-hidden relative text-[var(--cn-text-3)]"
+                    style={{
+                      background: "var(--cn-surface-2)",
+                      border: "1px solid var(--cn-border)",
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#1d2a52_1px,transparent_1px)] [background-size:18px_18px]" />
                     <div className="relative h-full w-full">
                       <Art />
                     </div>
-
                   </div>
                 </div>
               </Reveal>
@@ -254,3 +275,4 @@ function HowItWorks() {
 }
 
 export default HowItWorks;
+

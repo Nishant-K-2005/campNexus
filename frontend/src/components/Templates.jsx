@@ -14,22 +14,22 @@ const data = [
 
 function Templates() {
   return (
-    <section id="templates" className="relative bg-[#060B1A] py-20 overflow-hidden">
-      <div className="absolute top-10 left-0 -translate-x-1/3 blur-3xl opacity-20 pointer-events-none">
+    <section id="templates" className="relative py-20 overflow-hidden transition-colors duration-300" style={{ background: "var(--cn-bg)" }}>
+      <div className="absolute top-10 left-0 -translate-x-1/3 blur-3xl opacity-10 pointer-events-none">
         <div className="aspect-square h-[420px] rounded-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <Reveal>
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs border" style={{ borderColor: "var(--cn-border)", background: "var(--cn-surface-2)", color: "var(--cn-text-2)" }}>
+              <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
               Start fast
             </div>
-            <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+            <h2 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: "var(--cn-text)" }}>
               Explore verified campus spaces
             </h2>
-            <p className="mt-3 text-slate-300">
+            <p className="mt-3 text-sm sm:text-base" style={{ color: "var(--cn-text-3)" }}>
               Join communities, access verified resources, and collaborate — all in one place.
             </p>
           </div>
@@ -38,23 +38,32 @@ function Templates() {
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {data.map((x, i) => (
             <Reveal key={x.title} delay={i * 0.06}>
-              <div className="rounded-2xl bg-white/5 border border-white/10 shadow-xl shadow-indigo-500/10 p-6 backdrop-blur relative overflow-hidden hover:translate-y-[-2px] transition-transform">
-                <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#1d2a52_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]" />
+              <div
+                className="rounded-2xl p-6 relative overflow-hidden transition-all duration-200"
+                style={{
+                  background: "var(--cn-card)",
+                  border: "1px solid var(--cn-border)",
+                  boxShadow: "var(--cn-shadow)"
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--cn-shadow-lg)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "var(--cn-shadow)"; }}
+              >
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#1d2a52_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]" />
                 <div className="relative">
-                  <div className="text-xs text-slate-400">{x.tag}</div>
-                  <div className="mt-1 text-white font-bold text-lg">{x.title}</div>
-
+                  <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: x.tag === "Verified" ? "var(--cn-success)" : "var(--cn-primary)" }}>{x.tag}</div>
+                  <div className="mt-1 font-bold text-lg" style={{ color: "var(--cn-text)" }}>{x.title}</div>
+ 
                   <div className="mt-4 space-y-2">
-                    <div className="h-3 bg-white/10 rounded w-full" />
-                    <div className="h-3 bg-white/10 rounded w-5/6" />
-                    <div className="h-3 bg-white/10 rounded w-4/6" />
+                    <div className="h-3 rounded w-full" style={{ background: "var(--cn-surface-2)" }} />
+                    <div className="h-3 rounded w-5/6" style={{ background: "var(--cn-surface-2)" }} />
+                    <div className="h-3 rounded w-4/6" style={{ background: "var(--cn-surface-2)" }} />
                   </div>
-
+ 
                   <div className="mt-5 flex gap-2">
-                    <span className="px-3 py-1 bg-indigo-500/10 text-indigo-300 text-xs rounded-full border border-indigo-400/20">
+                    <span className="px-3 py-1 text-xs rounded-full border" style={{ background: "var(--cn-primary-l)", color: "var(--cn-primary)", borderColor: "rgba(99,102,241,0.2)" }}>
                       #Campus
                     </span>
-                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-300 text-xs rounded-full border border-emerald-400/20">
+                    <span className="px-3 py-1 text-xs rounded-full border" style={{ background: "rgba(16,185,129,0.1)", color: "var(--cn-success)", borderColor: "rgba(16,185,129,0.2)" }}>
                       AI Verified
                     </span>
                   </div>
@@ -69,3 +78,4 @@ function Templates() {
 }
 
 export default Templates;
+

@@ -6,8 +6,8 @@ export default function Providers({ children }) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="dark"
-      enableSystem={false}
+      defaultTheme="system"
+      enableSystem
       storageKey="campnexus-theme"
       disableTransitionOnChange={false}
     >

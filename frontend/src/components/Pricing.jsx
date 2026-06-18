@@ -28,13 +28,13 @@ const plans = [
 
 function Pricing() {
   return (
-    <section id="pricing" className="bg-[#060B1A] py-20">
+    <section id="pricing" className="py-20 transition-colors duration-300" style={{ background: "var(--cn-bg)" }}>
       <div className="max-w-7xl mx-auto px-6">
         <Reveal>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: "var(--cn-text)" }}>
             Pricing
           </h2>
-          <p className="mt-3 text-slate-300 max-w-2xl">
+          <p className="mt-3 max-w-2xl text-sm" style={{ color: "var(--cn-text-3)" }}>
             Same theme. Simple plans. Upgrade anytime.
           </p>
         </Reveal>
@@ -43,24 +43,39 @@ function Pricing() {
           {plans.map((p, i) => (
             <Reveal key={p.name} delay={i * 0.08}>
               <div
-                className={`rounded-2xl bg-white/5 border border-white/10 shadow-xl shadow-indigo-500/10 p-7 backdrop-blur relative overflow-hidden hover:translate-y-[-2px] transition-transform ${
-                  p.popular ? "ring-1 ring-indigo-500/40" : ""
+                className={`rounded-2xl p-7 relative overflow-hidden transition-all duration-200 ${
+                  p.popular ? "ring-2 ring-indigo-500/40" : ""
                 }`}
+                style={{
+                  background: "var(--cn-card)",
+                  border: "1px solid var(--cn-border)",
+                  boxShadow: "var(--cn-shadow)",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--cn-shadow-lg)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "var(--cn-shadow)"; }}
               >
                 {p.popular && (
-                  <div className="absolute top-5 right-5 px-3 py-1 bg-indigo-500/10 text-indigo-300 text-xs rounded-full border border-indigo-400/20">
+                  <div className="absolute top-5 right-5 px-3 py-1 text-xs rounded-full border" style={{ background: "var(--cn-primary-l)", color: "var(--cn-primary)", borderColor: "rgba(99,102,241,0.2)" }}>
                     MOST POPULAR
                   </div>
                 )}
 
-                <h3 className="text-white font-bold text-xl">{p.name}</h3>
-                <div className="mt-2 text-3xl font-extrabold text-white">{p.price}</div>
-                <p className="mt-2 text-slate-300">{p.desc}</p>
+                <h3 className="font-bold text-xl" style={{ color: "var(--cn-text)" }}>{p.name}</h3>
+                <div className="mt-2 text-3xl font-extrabold" style={{ color: "var(--cn-text)" }}>{p.price}</div>
+                <p className="mt-2 text-xs sm:text-sm" style={{ color: "var(--cn-text-3)" }}>{p.desc}</p>
 
-                <ul className="mt-6 space-y-3 text-slate-300">
+                <ul className="mt-6 space-y-3 text-xs sm:text-sm" style={{ color: "var(--cn-text-2)" }}>
                   {p.items.map((it) => (
-                    <li key={it} className="flex gap-3">
-                      <span className="h-5 w-5 rounded-full bg-emerald-500/10 border border-emerald-400/20 flex-shrink-0" />
+                    <li key={it} className="flex items-center gap-3">
+                      <span
+                        className="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: "rgba(16,185,129,0.1)",
+                          border: "1px solid rgba(16,185,129,0.25)",
+                        }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      </span>
                       {it}
                     </li>
                   ))}
@@ -68,11 +83,26 @@ function Pricing() {
 
                 <Link
                   href="/auth/signup"
-                  className={`mt-7 inline-flex w-full items-center justify-center px-6 py-3 rounded-xl font-medium transition-colors border ${
-                    p.popular
-                      ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30 border-indigo-400/20"
-                      : "bg-white/10 text-white hover:bg-white/15 border-white/15"
-                  }`}
+                  className="mt-7 inline-flex w-full items-center justify-center px-6 py-3 rounded-xl font-medium transition-colors border text-xs sm:text-sm shadow-md"
+                  style={p.popular ? {
+                    background: "linear-gradient(135deg, var(--cn-primary), #818CF8)",
+                    color: "white",
+                    borderColor: "transparent"
+                  } : {
+                    background: "var(--cn-surface-2)",
+                    borderColor: "var(--cn-border)",
+                    color: "var(--cn-text-2)"
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!p.popular) {
+                      e.currentTarget.style.background = "var(--cn-border)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!p.popular) {
+                      e.currentTarget.style.background = "var(--cn-surface-2)";
+                    }
+                  }}
                 >
                   Get started
                 </Link>
@@ -86,3 +116,4 @@ function Pricing() {
 }
 
 export default Pricing;
+

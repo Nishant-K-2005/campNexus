@@ -14,17 +14,17 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative bg-[#060B1A] overflow-hidden">
+    <footer className="relative overflow-hidden transition-colors duration-300" style={{ background: "var(--cn-surface)", borderTop: "1px solid var(--cn-border)" }}>
       
       {/* Background glow blob */}
-      <div className="absolute -bottom-40 right-0 translate-x-1/3 blur-3xl opacity-20 pointer-events-none">
+      <div className="absolute -bottom-40 right-0 translate-x-1/3 blur-3xl opacity-10 pointer-events-none">
         <div className="aspect-square h-[420px] rounded-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400" />
       </div>
 
       <div className="relative mx-auto w-full max-w-7xl px-6 pt-12 pb-16">
         
         <Reveal>
-          <Separator className="bg-white/10" />
+          <Separator className="bg-white/10" style={{ background: "var(--cn-border)" }} />
         </Reveal>
 
         <div className="mt-10 flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
@@ -32,10 +32,10 @@ export default function Footer() {
           {/* Brand */}
           <Reveal>
             <div>
-              <div className="font-semibold text-white text-lg">
-                Campnexus
+              <div className="font-semibold text-lg" style={{ color: "var(--cn-text)" }}>
+                CampNexus
               </div>
-              <div className="text-sm text-slate-400 mt-1">
+              <div className="text-sm mt-1" style={{ color: "var(--cn-text-3)" }}>
                 Discover your academic tribe. Verified by AI.
               </div>
             </div>
@@ -52,7 +52,7 @@ export default function Footer() {
                 transition: { staggerChildren: 0.08 },
               },
             }}
-            className="flex flex-wrap gap-6 text-sm text-slate-300"
+            className="flex flex-wrap gap-6 text-sm"
           >
             {links.map((link) => (
               <motion.a
@@ -63,7 +63,10 @@ export default function Footer() {
                   show: { opacity: 1, y: 0 },
                 }}
                 transition={{ duration: 0.4 }}
-                className="hover:text-white transition-colors"
+                className="transition-colors"
+                style={{ color: "var(--cn-text-3)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--cn-text)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--cn-text-3)"; }}
               >
                 {link.label}
               </motion.a>
@@ -72,8 +75,8 @@ export default function Footer() {
 
           {/* Copyright */}
           <Reveal delay={0.2}>
-            <div className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Campnexus. All rights reserved.
+            <div className="text-sm" style={{ color: "var(--cn-text-4)" }}>
+              © {new Date().getFullYear()} CampNexus. All rights reserved.
             </div>
           </Reveal>
 
@@ -82,3 +85,4 @@ export default function Footer() {
     </footer>
   );
 }
+

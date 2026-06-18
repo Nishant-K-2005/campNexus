@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Users, Plus, Globe, Lock, Star, TrendingUp, X, Loader } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ function tagColor(index) {
 }
 
 function CommunityCard({ community, index, onJoin }) {
+  const router = useRouter();
   const [joining, setJoining] = useState(false);
   const color = tagColor(index);
   const isJoined = community.userIsMember;
@@ -37,6 +39,7 @@ function CommunityCard({ community, index, onJoin }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.4 }}
       whileHover={{ y: -4 }}
+      onClick={() => router.push(`/communities/${community.community_id}`)}
       className="rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-200"
       style={{
         background: "var(--cn-card)",
@@ -118,94 +121,7 @@ function CommunityCard({ community, index, onJoin }) {
   );
 }
 
-/* ─── Create Community Modal ───────────────────────────── */
-function CreateCommunityModal({ onClose, onCreate }) {
-  const [form, setForm] = useState({ name: "", description: "", tags: "" });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) return toast.error("Community name is required");
-    setLoading(true);
-    try {
-      const tags = form.tags.split(",").map((t) => t.trim()).filter(Boolean);
-      await onCreate({ name: form.name, description: form.description, tags });
-      onClose();
-    } catch {
-      // error already toasted by caller
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,0.5)" }}
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-md rounded-2xl p-6 z-10"
-        style={{ background: "var(--cn-card)", border: "1px solid var(--cn-border)", boxShadow: "var(--cn-shadow-lg)" }}
-      >
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-base font-bold" style={{ color: "var(--cn-text)" }}>Create Community</h2>
-          <button onClick={onClose} className="cursor-pointer" style={{ color: "var(--cn-text-4)" }}>
-            <X style={{ width: 18, height: 18 }} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="cn-label">Community Name *</label>
-            <input
-              className="cn-input"
-              placeholder="e.g. AI Research Club"
-              value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="cn-label">Description</label>
-            <textarea
-              className="cn-input resize-none"
-              rows={3}
-              placeholder="What is this community about?"
-              value={form.description}
-              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="cn-label">Tags (comma-separated)</label>
-            <input
-              className="cn-input"
-              placeholder="e.g. AI, Machine Learning, Python"
-              value={form.tags}
-              onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg, var(--cn-primary), #818CF8)" }}
-          >
-            {loading && <Loader style={{ width: 14, height: 14 }} className="cn-animate-spin" />}
-            {loading ? "Creating..." : "Create Community"}
-          </button>
-        </form>
-      </motion.div>
-    </motion.div>
-  );
-}
+import CommunityWizard from "@/components/communities/CommunityWizard";
 
 /* ─── Main View ─────────────────────────────────────────── */
 export default function CommunitiesView() {
@@ -321,7 +237,7 @@ export default function CommunitiesView() {
       {/* Create Modal */}
       <AnimatePresence>
         {showCreate && (
-          <CreateCommunityModal onClose={() => setShowCreate(false)} onCreate={handleCreate} />
+          <CommunityWizard open={showCreate} onClose={() => setShowCreate(false)} onCreate={handleCreate} />
         )}
       </AnimatePresence>
     </div>

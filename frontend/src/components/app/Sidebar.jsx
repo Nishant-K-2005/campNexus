@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import useAuthStore from "@/store/authStore";
 import {
   LayoutDashboard,
   Users,
@@ -13,18 +15,27 @@ import {
   ChevronRight,
   GraduationCap,
   Sparkles,
+  Bell,
+  User,
+  Shield,
 } from "lucide-react";
 
-const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "communities", label: "Communities", icon: Users },
-  { id: "declarations", label: "Declarations", icon: Megaphone },
-  { id: "discussions", label: "Discussions", icon: MessageSquare },
-  { id: "resources", label: "Resources", icon: FolderOpen },
-  { id: "settings", label: "Settings", icon: Settings, divider: true },
-];
+export default function Sidebar({ collapsed, setCollapsed, onNavigate }) {
+  const pathname = usePathname();
+  const { user } = useAuthStore();
 
-export default function Sidebar({ activeTab, setActiveTab, collapsed, setCollapsed }) {
+  const navItems = [
+    { id: "dashboard", href: "/dashboard", label: "Home Feed", icon: LayoutDashboard },
+    { id: "communities", href: "/communities", label: "Communities", icon: Users },
+    { id: "declarations", href: "/declarations", label: "Declarations", icon: Megaphone },
+    { id: "discussions", href: "/discussions", label: "Discussions", icon: MessageSquare },
+    { id: "resources", href: "/resources", label: "Resources", icon: FolderOpen },
+    { id: "profile", href: "/profile", label: "Profile", icon: User },
+    ...(user?.role === "Admin" ? [{ id: "admin", href: "/admin", label: "Admin Dashboard", icon: Shield }] : []),
+    { id: "settings", href: "/settings", label: "Settings", icon: Settings, divider: true },
+  ];
+
+
   return (
     <motion.aside
       animate={{ width: collapsed ? 64 : 240 }}
@@ -35,7 +46,6 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, setCollaps
         borderRight: "1px solid var(--cn-border)",
       }}
     >
-      {/* Logo */}
       <div
         className="flex items-center px-4 py-5 gap-3"
         style={{ borderBottom: "1px solid var(--cn-border)" }}
@@ -52,7 +62,6 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, setCollaps
               initial={{ opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: "auto" }}
               exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.2 }}
               className="text-base font-bold overflow-hidden whitespace-nowrap"
               style={{ color: "var(--cn-text)" }}
             >
@@ -62,45 +71,25 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, setCollaps
         </AnimatePresence>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id;
+          const isActive = pathname.startsWith(item.href);
           return (
             <div key={item.id}>
               {item.divider && (
-                <div
-                  className="my-2 h-px mx-2"
-                  style={{ background: "var(--cn-border)" }}
-                />
+                <div className="my-2 h-px mx-2" style={{ background: "var(--cn-border)" }} />
               )}
-              <button
-                onClick={() => setActiveTab(item.id)}
+              <Link
+                href={item.href}
+                onClick={onNavigate}
                 title={collapsed ? item.label : undefined}
-                className={`
-                  w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                  text-sm font-medium transition-all duration-200 cursor-pointer
-                  relative group
-                `}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative group"
                 style={{
                   background: isActive ? "var(--cn-primary-l)" : "transparent",
                   color: isActive ? "var(--cn-primary)" : "var(--cn-text-3)",
                 }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = "var(--cn-surface-2)";
-                    e.currentTarget.style.color = "var(--cn-text)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = "var(--cn-text-3)";
-                  }
-                }}
               >
-                {/* Active indicator */}
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
@@ -108,45 +97,25 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, setCollaps
                     style={{ background: "var(--cn-primary)" }}
                   />
                 )}
-                <Icon
-                  className="flex-shrink-0"
-                  style={{ width: 18, height: 18 }}
-                />
+                <Icon className="flex-shrink-0" style={{ width: 18, height: 18 }} />
                 <AnimatePresence>
                   {!collapsed && (
                     <motion.span
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "auto" }}
                       exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.2 }}
                       className="overflow-hidden whitespace-nowrap"
                     >
                       {item.label}
                     </motion.span>
                   )}
                 </AnimatePresence>
-
-                {/* Tooltip for collapsed state */}
-                {collapsed && (
-                  <div
-                    className="absolute left-full ml-3 px-2 py-1 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50"
-                    style={{
-                      background: "var(--cn-card)",
-                      border: "1px solid var(--cn-border)",
-                      color: "var(--cn-text)",
-                      boxShadow: "var(--cn-shadow)",
-                    }}
-                  >
-                    {item.label}
-                  </div>
-                )}
-              </button>
+              </Link>
             </div>
           );
         })}
       </nav>
 
-      {/* AI Badge */}
       <AnimatePresence>
         {!collapsed && (
           <motion.div
@@ -166,16 +135,15 @@ export default function Sidebar({ activeTab, setActiveTab, collapsed, setCollaps
               </span>
             </div>
             <p className="text-xs" style={{ color: "var(--cn-text-4)" }}>
-              Smart moderation & content recommendations active
+              Smart moderation & recommendations active
             </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer z-20"
+        className="absolute -right-3 top-20 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer z-20"
         style={{
           background: "var(--cn-surface)",
           border: "1px solid var(--cn-border)",

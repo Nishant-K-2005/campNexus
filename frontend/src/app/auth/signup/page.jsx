@@ -7,6 +7,7 @@ import useAuthStore from "@/store/authStore";
 import { Loader, Mail, Lock, Eye, EyeOff, User, GraduationCap, BookOpen, Users, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
+import AuthShell from "@/components/auth/AuthShell";
 
 const roleOptions = [
   {
@@ -90,7 +91,7 @@ export default function SignupPage() {
         email: formData.email,
         pass: formData.password,
         full_name: formData.name,
-        role: formData.role === "ClubHead" ? "ClubHead" : formData.role,
+        role: formData.role === "ClubHead" ? "Club Head" : formData.role,
       });
     } catch (error) {
       console.error("Signup failed:", error);
@@ -99,70 +100,31 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (user?.role) {
-      switch (user.role) {
-        case "Student": router.push("/student"); break;
-        case "Professor": router.push("/professor"); break;
-        case "Admin": router.push("/admin"); break;
-        default: router.push("/auth/login");
-      }
+      router.push("/dashboard");
     }
   }, [user, router]);
 
   const selectedRole = roleOptions.find((r) => r.value === formData.role);
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: "var(--cn-bg)", color: "var(--cn-text)" }}
-    >
-      {/* Top bar */}
-      <div className="flex justify-between items-center px-6 py-4">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #6366F1, #818CF8)" }}
-          >
-            <GraduationCap className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-base font-bold" style={{ color: "var(--cn-text)" }}>CampNexus</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm hidden sm:block" style={{ color: "var(--cn-text-3)" }}>
-            Already have an account?{" "}
-            <Link href="/auth/login" className="font-semibold" style={{ color: "var(--cn-primary)" }}>
-              Sign in
-            </Link>
-          </span>
-          <ThemeToggle />
-        </div>
+    <AuthShell mode="signup">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold" style={{ color: "var(--cn-text)" }}>
+          Create your account
+        </h1>
+        <p className="mt-2 text-sm" style={{ color: "var(--cn-text-3)" }}>
+          Join students, professors, and campus leaders on CampNexus
+        </p>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 flex items-start justify-center px-4 pb-10 pt-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-lg"
-        >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold" style={{ color: "var(--cn-text)" }}>
-              Create your account
-            </h1>
-            <p className="mt-2 text-sm" style={{ color: "var(--cn-text-3)" }}>
-              Join 50,000+ students, professors, and campus leaders on CampNexus
-            </p>
-          </div>
-
-          <div
-            className="rounded-2xl p-6 sm:p-8"
-            style={{
-              background: "var(--cn-card)",
-              border: "1px solid var(--cn-border)",
-              boxShadow: "var(--cn-shadow-lg)",
-            }}
-          >
+      <div
+        className="rounded-2xl p-6"
+        style={{
+          background: "var(--cn-card)",
+          border: "1px solid var(--cn-border)",
+          boxShadow: "var(--cn-shadow-lg)",
+        }}
+      >
             {/* Step indicator */}
             <div className="flex items-center gap-2 mb-6">
               {[1, 2].map((s) => (
@@ -464,14 +426,12 @@ export default function SignupPage() {
             </AnimatePresence>
           </div>
 
-          <p className="text-center text-sm mt-4" style={{ color: "var(--cn-text-3)" }}>
-            Already have an account?{" "}
-            <Link href="/auth/login" className="font-semibold" style={{ color: "var(--cn-primary)" }}>
-              Sign in
-            </Link>
-          </p>
-        </motion.div>
-      </div>
-    </div>
+      <p className="text-center text-sm mt-4" style={{ color: "var(--cn-text-3)" }}>
+        Already have an account?{" "}
+        <Link href="/auth/login" className="font-semibold" style={{ color: "var(--cn-primary)" }}>
+          Sign in
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

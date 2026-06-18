@@ -21,28 +21,15 @@ export default function ProtectedRoute({ children, allowedRoles }) {
       }
 
       if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-        // Redirect to appropriate dashboard based on role
-        switch (user.role) {
-          case "Student":
-            router.push("/student");
-            break;
-          case "Teacher":
-            router.push("/teacher");
-            break;
-          case "Admin":
-            router.push("/admin");
-            break;
-          default:
-            router.push("/auth/login");
-        }
+        router.push("/dashboard");
       }
     }
   }, [isAuthenticated, user, allowedRoles, isLoading, router]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#060B1A] flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center transition-colors duration-300" style={{ background: "var(--cn-bg)" }}>
+        <div style={{ color: "var(--cn-text)" }}>Loading...</div>
       </div>
     );
   }

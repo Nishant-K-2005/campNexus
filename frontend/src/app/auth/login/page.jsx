@@ -7,6 +7,7 @@ import useAuthStore from "@/store/authStore";
 import { Loader, Mail, Lock, Eye, EyeOff, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
+import AuthShell from "@/components/auth/AuthShell";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -52,189 +53,25 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (user?.role) {
-      switch (user.role) {
-        case "Student": router.push("/student"); break;
-        case "Professor": router.push("/professor"); break;
-        case "Admin": router.push("/admin"); break;
-        default: router.push("/auth/login");
-      }
+      router.push("/dashboard");
     }
   }, [user, router]);
 
   const roles = ["Student", "Professor", "Admin"];
 
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ background: "var(--cn-bg)", color: "var(--cn-text)" }}
-    >
-      {/* ─── LEFT PANEL (Branding) ─── */}
-      <motion.div
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-        className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative flex-col justify-between p-12 overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%)" }}
-      >
-        {/* Animated mesh orbs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div
-            className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full opacity-30"
-            style={{
-              background: "radial-gradient(circle, #6366F1 0%, transparent 70%)",
-              filter: "blur(60px)",
-              animation: "cn-float 6s ease-in-out infinite",
-            }}
-          />
-          <div
-            className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-20"
-            style={{
-              background: "radial-gradient(circle, #22D3EE 0%, transparent 70%)",
-              filter: "blur(80px)",
-              animation: "cn-float 8s ease-in-out infinite reverse",
-            }}
-          />
-          <div
-            className="absolute top-[40%] right-[20%] w-[300px] h-[300px] rounded-full opacity-15"
-            style={{
-              background: "radial-gradient(circle, #A78BFA 0%, transparent 70%)",
-              filter: "blur(50px)",
-              animation: "cn-float 5s ease-in-out infinite 1s",
-            }}
-          />
-          {/* Grid pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
-            }}
-          />
-        </div>
+    <AuthShell mode="login">
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold" style={{ color: "var(--cn-text)" }}>
+          Welcome back 👋
+        </h2>
+        <p className="mt-1.5 text-sm" style={{ color: "var(--cn-text-3)" }}>
+          Sign in to your CampNexus account
+        </p>
+      </div>
 
-        {/* Logo */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #6366F1, #818CF8)" }}
-            >
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white tracking-tight">CampNexus</span>
-          </div>
-        </div>
-
-        {/* Hero text */}
-        <div className="relative z-10 space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
-          >
-            <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
-              Your campus,<br />
-              <span style={{ background: "linear-gradient(135deg, #818CF8, #22D3EE)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                connected.
-              </span>
-            </h1>
-            <p className="mt-4 text-lg" style={{ color: "#94A3B8" }}>
-              The all-in-one platform for campus communities, discussions, and academic resources.
-            </p>
-          </motion.div>
-
-          {/* Feature pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="flex flex-wrap gap-2"
-          >
-            {["🏛️ Communities", "📣 Declarations", "💬 Discussions", "📚 Resources"].map((item) => (
-              <span
-                key={item}
-                className="px-3 py-1.5 rounded-full text-sm font-medium"
-                style={{
-                  background: "rgba(99,102,241,0.15)",
-                  border: "1px solid rgba(99,102,241,0.3)",
-                  color: "#A5B4FC",
-                }}
-              >
-                {item}
-              </span>
-            ))}
-          </motion.div>
-
-          {/* Testimonial */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            className="p-5 rounded-2xl"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            <p className="text-sm italic" style={{ color: "#CBD5E1" }}>
-              "CampNexus completely transformed how our university community collaborates. Everything in one place."
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
-              >
-                A
-              </div>
-              <div>
-                <p className="text-xs font-medium text-white">Aanya Sharma</p>
-                <p className="text-xs" style={{ color: "#64748B" }}>Student, IIT Delhi</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* ─── RIGHT PANEL (Form) ─── */}
-      <div
-        className="w-full lg:w-[45%] xl:w-[40%] flex flex-col"
-        style={{ background: "var(--cn-bg)" }}
-      >
-        {/* Top bar */}
-        <div className="flex justify-between items-center p-6">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #6366F1, #818CF8)" }}
-            >
-              <GraduationCap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-base font-bold" style={{ color: "var(--cn-text)" }}>CampNexus</span>
-          </div>
-          <div className="hidden lg:block" />
-          <ThemeToggle />
-        </div>
-
-        {/* Form area */}
-        <div className="flex-1 flex items-center justify-center px-6 pb-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="w-full max-w-sm"
-          >
-            {/* Header */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold" style={{ color: "var(--cn-text)" }}>
-                Welcome back 👋
-              </h2>
-              <p className="mt-1.5 text-sm" style={{ color: "var(--cn-text-3)" }}>
-                Sign in to your CampNexus account
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
               {/* Role selector */}
               <div>
                 <label className="cn-label">Sign in as</label>
@@ -395,10 +232,7 @@ const LoginPage = () => {
               <a href="#" style={{ color: "var(--cn-primary)" }}>Terms</a> and{" "}
               <a href="#" style={{ color: "var(--cn-primary)" }}>Privacy Policy</a>
             </p>
-          </motion.div>
-        </div>
-      </div>
-    </div>
+    </AuthShell>
   );
 };
 

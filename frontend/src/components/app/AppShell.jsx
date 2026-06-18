@@ -1,38 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
-import DashboardView from "./Dashboard";
-import CommunitiesView from "./Communities";
-import DeclarationsView from "./Declarations";
-import DiscussionsView from "./Discussions";
-import ResourcesView from "./Resources";
-import SettingsView from "./SettingsView";
+import RightPanel from "@/components/layout/RightPanel";
 
-const views = {
-  dashboard: DashboardView,
-  communities: CommunitiesView,
-  declarations: DeclarationsView,
-  discussions: DiscussionsView,
-  resources: ResourcesView,
-  settings: SettingsView,
-};
-
-export default function AppShell() {
-  const [activeTab, setActiveTab] = useState("dashboard");
+export default function AppShell({ children }) {
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(true);
 
-  const ActiveView = views[activeTab] || DashboardView;
+  const activeTab =
+    pathname.split("/").filter(Boolean)[0] || "dashboard";
 
   return (
-    <div
-      className="flex h-screen overflow-hidden"
-      style={{ background: "var(--cn-bg)" }}
-    >
-      {/* Mobile overlay */}
+    <div className="flex h-screen overflow-hidden" style={{ background: "var(--cn-bg)" }}>
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -46,17 +31,10 @@ export default function AppShell() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar – desktop */}
       <div className="hidden lg:flex h-full">
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-        />
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       </div>
 
-      {/* Sidebar – mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -67,37 +45,50 @@ export default function AppShell() {
             className="fixed left-0 top-0 h-full z-50 lg:hidden"
             style={{ width: 240 }}
           >
-            <Sidebar
-              activeTab={activeTab}
-              setActiveTab={(tab) => { setActiveTab(tab); setMobileOpen(false); }}
-              collapsed={false}
-              setCollapsed={() => {}}
-            />
+            <Sidebar collapsed={false} setCollapsed={() => {}} onNavigate={() => setMobileOpen(false)} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar activeTab={activeTab} onMobileMenu={() => setMobileOpen(!mobileOpen)} />
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        <Navbar
+          activeTab={activeTab}
+          onMobileMenu={() => setMobileOpen(!mobileOpen)}
+          onToggleRight={() => setRightOpen(!rightOpen)}
+          rightOpen={rightOpen}
+        />
 
-        <main
-          className="flex-1 overflow-y-auto"
-          style={{ background: "var(--cn-bg)" }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="h-full"
-            >
-              <ActiveView />
-            </motion.div>
+        <div className="flex flex-1 overflow-hidden">
+          <main className="flex-1 overflow-y-auto" style={{ background: "var(--cn-bg)" }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="min-h-full"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+
+          <AnimatePresence>
+            {rightOpen && (
+              <motion.aside
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 300, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="hidden xl:block overflow-hidden flex-shrink-0"
+                style={{ borderLeft: "1px solid var(--cn-border)" }}
+              >
+                <RightPanel />
+              </motion.aside>
+            )}
           </AnimatePresence>
-        </main>
+        </div>
       </div>
     </div>
   );

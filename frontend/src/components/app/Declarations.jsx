@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { AlertTriangle, Calendar, Info, Bell, Pin, ChevronDown, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertTriangle, Calendar, Info, Bell, Pin, ChevronDown,
+  ChevronRight, Plus, X, Loader, ShieldCheck
+} from "lucide-react";
+import { toast } from "sonner";
+import useAuthStore from "@/store/authStore";
+import useActivityStore from "@/store/activityStore";
+import api from "@/lib/api";
 
-const declarations = [
+const initialDeclarations = [
   {
-    id: 1,
+    id: "g1",
     type: "urgent",
     category: "Notice",
     title: "Mid-term Examination Schedule – June 2026",
@@ -20,11 +27,11 @@ const declarations = [
     views: 3421,
   },
   {
-    id: 2,
+    id: "g2",
     type: "event",
     category: "Event",
     title: "CampNexus Hackathon 2026 – Registration Open",
-    content: "We are thrilled to announce the CampNexus Hackathon 2026! This is a 48-hour event where teams of 2-5 members will build innovative solutions across tracks including AI/ML, Web3, ClimateTech, and EdTech. Prize pool of ₹5,00,000. Registration closes June 15.",
+    content: "We are thrilled to announce the CampNexus Hackathon 2026! This is a 48-hour event where teams of 2-5 members will build innovative solutions across tracks including AI/ML, Web3, ClimateTech, and EdTech. Prize pool of ₹5,0,000. Registration closes June 15.",
     author: "Tech Society",
     authorRole: "Club Head",
     date: "Jun 10, 2026",
@@ -34,7 +41,7 @@ const declarations = [
     views: 5843,
   },
   {
-    id: 3,
+    id: "g3",
     type: "info",
     category: "Announcement",
     title: "New AI-Powered Research Lab Inaugurated",
@@ -47,7 +54,7 @@ const declarations = [
     views: 2109,
   },
   {
-    id: 4,
+    id: "g4",
     type: "event",
     category: "Event",
     title: "AI Research Symposium – Call for Papers",
@@ -60,7 +67,7 @@ const declarations = [
     views: 1876,
   },
   {
-    id: 5,
+    id: "g5",
     type: "info",
     category: "Notice",
     title: "Library Working Hours Extended for Exam Season",
@@ -73,7 +80,7 @@ const declarations = [
     views: 987,
   },
   {
-    id: 6,
+    id: "g6",
     type: "urgent",
     category: "Notice",
     title: "Campus Network Maintenance – Scheduled Downtime",
@@ -93,9 +100,9 @@ const typeConfig = {
   info: { icon: Info, color: "#10B981", bg: "rgba(16,185,129,0.1)", label: "Info" },
 };
 
-function DeclarationCard({ decl, index }) {
+function DeclarationCard({ decl, index, isModerator, onDelete }) {
   const [expanded, setExpanded] = useState(index === 0);
-  const config = typeConfig[decl.type];
+  const config = typeConfig[decl.type] || typeConfig.info;
   const Icon = config.icon;
 
   return (
@@ -105,7 +112,6 @@ function DeclarationCard({ decl, index }) {
       transition={{ delay: index * 0.07, duration: 0.4 }}
       className="flex gap-4 relative"
     >
-      {/* Timeline line */}
       <div className="flex flex-col items-center flex-shrink-0">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center z-10"
@@ -119,7 +125,6 @@ function DeclarationCard({ decl, index }) {
         />
       </div>
 
-      {/* Card */}
       <div
         className="flex-1 mb-4 rounded-2xl overflow-hidden"
         style={{
@@ -128,7 +133,6 @@ function DeclarationCard({ decl, index }) {
           boxShadow: "var(--cn-shadow)",
         }}
       >
-        {/* Card header */}
         <button
           onClick={() => setExpanded(!expanded)}
           className="w-full flex items-start gap-3 p-4 text-left cursor-pointer transition-all"
@@ -171,14 +175,23 @@ function DeclarationCard({ decl, index }) {
               <span className="text-xs" style={{ color: "var(--cn-text-4)" }}>{decl.views.toLocaleString()} views</span>
             </div>
           </div>
-          {expanded ? (
-            <ChevronDown style={{ width: 16, height: 16, color: "var(--cn-text-4)", flexShrink: 0 }} />
-          ) : (
-            <ChevronRight style={{ width: 16, height: 16, color: "var(--cn-text-4)", flexShrink: 0 }} />
-          )}
+          <div className="flex items-center gap-2">
+            {isModerator && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(decl.id); }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+              >
+                <Trash2Icon className="w-4 h-4" />
+              </button>
+            )}
+            {expanded ? (
+              <ChevronDown style={{ width: 16, height: 16, color: "var(--cn-text-4)", flexShrink: 0 }} />
+            ) : (
+              <ChevronRight style={{ width: 16, height: 16, color: "var(--cn-text-4)", flexShrink: 0 }} />
+            )}
+          </div>
         </button>
 
-        {/* Expanded content */}
         {expanded && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -190,7 +203,7 @@ function DeclarationCard({ decl, index }) {
             <p className="text-sm leading-relaxed mt-3" style={{ color: "var(--cn-text-2)" }}>
               {decl.content}
             </p>
-            {decl.attachments.length > 0 && (
+            {decl.attachments?.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {decl.attachments.map((att) => (
                   <button
@@ -201,8 +214,6 @@ function DeclarationCard({ decl, index }) {
                       border: "1px solid var(--cn-border)",
                       color: "var(--cn-text-2)",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--cn-primary)"; e.currentTarget.style.color = "var(--cn-primary)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--cn-border)"; e.currentTarget.style.color = "var(--cn-text-2)"; }}
                   >
                     📎 {att}
                   </button>
@@ -216,9 +227,86 @@ function DeclarationCard({ decl, index }) {
   );
 }
 
+function Trash2Icon(props) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M3 6h18"/>
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+    </svg>
+  );
+}
+
 export default function DeclarationsView() {
+  const [declarations, setDeclarations] = useState([]);
   const [filter, setFilter] = useState("All");
-  const filters = ["All", "Urgent", "Events", "Announcements"];
+  const [showCreate, setShowCreate] = useState(false);
+  const { user } = useAuthStore();
+  const { addNotification, addActivity } = useActivityStore();
+
+  const loadGlobalDeclarations = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const key = "campnexus-global-declarations";
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      setDeclarations(JSON.parse(stored));
+    } else {
+      localStorage.setItem(key, JSON.stringify(initialDeclarations));
+      setDeclarations(initialDeclarations);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGlobalDeclarations();
+  }, [loadGlobalDeclarations]);
+
+  const saveDeclarations = (newDecls) => {
+    localStorage.setItem("campnexus-global-declarations", JSON.stringify(newDecls));
+    setDeclarations(newDecls);
+  };
+
+  const handleCreate = (form) => {
+    const newDeclObj = {
+      id: `decl-${Date.now()}`,
+      type: form.type,
+      category: form.category,
+      title: form.title,
+      content: form.content,
+      author: user?.full_name || "Academic Coordinator",
+      authorRole: user?.role || "Professor",
+      date: new Date().toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: 'numeric' }),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      pinned: form.pinned,
+      attachments: form.attachment ? [form.attachment.name] : [],
+      views: 0,
+    };
+
+    const updated = [newDeclObj, ...declarations];
+    saveDeclarations(updated);
+    toast.success("Global declaration posted successfully!");
+
+    addNotification({
+      type: "Declaration",
+      text: `Announcement: ${form.title}`,
+      category: "declarations",
+      icon: "📣",
+      color: form.type === "urgent" ? "var(--cn-danger)" : "var(--cn-primary)"
+    });
+
+    addActivity({
+      text: `Posted campus declaration: "${form.title}"`,
+      type: "declaration",
+      icon: "📣",
+      color: form.type === "urgent" ? "#EF4444" : "#6366F1"
+    });
+  };
+
+  const handleDelete = (id) => {
+    if (!window.confirm("Delete this campus declaration?")) return;
+    const updated = declarations.filter((d) => d.id !== id);
+    saveDeclarations(updated);
+    toast.success("Declaration deleted!");
+  };
 
   const filtered = declarations.filter((d) => {
     if (filter === "All") return true;
@@ -227,6 +315,9 @@ export default function DeclarationsView() {
     if (filter === "Announcements") return d.type === "info";
     return true;
   });
+
+  const filters = ["All", "Urgent", "Events", "Announcements"];
+  const isPrivileged = user?.role === "Admin" || user?.role === "Professor" || user?.role === "ClubHead";
 
   return (
     <div className="p-5 sm:p-8 max-w-4xl mx-auto space-y-6">
@@ -253,6 +344,14 @@ export default function DeclarationsView() {
               {f}
             </button>
           ))}
+          {isPrivileged && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all cursor-pointer bg-indigo-600 hover:bg-indigo-700"
+            >
+              <Plus className="w-3.5 h-3.5" /> Post
+            </button>
+          )}
         </div>
       </div>
 
@@ -275,11 +374,131 @@ export default function DeclarationsView() {
       </div>
 
       {/* Timeline */}
-      <div>
+      <div className="space-y-4">
         {filtered.map((decl, i) => (
-          <DeclarationCard key={decl.id} decl={decl} index={i} />
+          <DeclarationCard
+            key={decl.id}
+            decl={decl}
+            index={i}
+            isModerator={isPrivileged}
+            onDelete={handleDelete}
+          />
         ))}
       </div>
+
+      <AnimatePresence>
+        {showCreate && (
+          <GlobalDeclarationCreateModal
+            onClose={() => setShowCreate(false)}
+            onCreate={handleCreate}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function GlobalDeclarationCreateModal({ onClose, onCreate }) {
+  const [form, setForm] = useState({
+    title: "",
+    content: "",
+    type: "info",
+    category: "Notice",
+    pinned: false,
+    attachment: null,
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.title.trim() || !form.content.trim()) return toast.error("Please fill all required fields");
+    onCreate(form);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="relative z-10 w-full max-w-md rounded-2xl p-6"
+        style={{ background: "var(--cn-card)", border: "1px solid var(--cn-border)", boxShadow: "var(--cn-shadow-lg)" }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-base font-bold" style={{ color: "var(--cn-text)" }}>Create Campus Declaration</h3>
+          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-200">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="cn-label">Title *</label>
+            <input
+              type="text"
+              className="cn-input"
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="e.g. Campus Holiday Announcement"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="cn-label">Priority Type</label>
+              <select className="cn-input" value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}>
+                <option value="info">Info</option>
+                <option value="event">Event</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div>
+              <label className="cn-label">Category</label>
+              <select className="cn-input" value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}>
+                <option value="Notice">Notice</option>
+                <option value="Event">Event</option>
+                <option value="Placement">Placement</option>
+                <option value="Academic">Academic</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="cn-label">Content *</label>
+            <textarea
+              className="cn-input resize-none"
+              rows={4}
+              value={form.content}
+              onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
+              placeholder="Detailed description of the announcement..."
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="cn-label flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.pinned} onChange={(e) => setForm((p) => ({ ...p, pinned: e.target.checked }))} className="w-4 h-4 accent-indigo-600" />
+              Pin Announcement
+            </label>
+          </div>
+
+          <div>
+            <label className="cn-label">Attachment</label>
+            <input type="file" className="text-xs text-slate-500" onChange={(e) => setForm((p) => ({ ...p, attachment: e.target.files[0] || null }))} />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer"
+            style={{ background: "linear-gradient(135deg, var(--cn-primary), #818CF8)" }}
+          >
+            Post Announcement
+          </button>
+        </form>
+      </motion.div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ const faqs = [
     a: "Content/resources are checked using AI rules to reduce spam and misinformation.",
   },
   {
-    q: "Is Campnexus free?",
+    q: "Is CampNexus free?",
     a: "Yes. You can start with the free plan and upgrade anytime.",
   },
   {
@@ -26,13 +26,13 @@ function FAQ() {
   const [open, setOpen] = useState(null);
 
   return (
-    <section id="faq" className="bg-[#060B1A] py-20">
+    <section id="faq" className="py-20 transition-colors duration-300" style={{ background: "var(--cn-bg)" }}>
       <div className="max-w-7xl mx-auto px-6">
         <Reveal>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: "var(--cn-text)" }}>
             FAQ
           </h2>
-          <p className="mt-3 text-slate-300 max-w-2xl">
+          <p className="mt-3 max-w-2xl text-sm" style={{ color: "var(--cn-text-3)" }}>
             Quick answers to common questions.
           </p>
         </Reveal>
@@ -44,11 +44,18 @@ function FAQ() {
               <Reveal key={f.q} delay={i * 0.06}>
                 <button
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="text-left w-full rounded-2xl bg-white/5 border border-white/10 shadow-xl shadow-indigo-500/10 p-6 backdrop-blur hover:bg-white/10 transition-colors"
+                  className="text-left w-full rounded-2xl p-6 transition-all cursor-pointer"
+                  style={{
+                    background: "var(--cn-card)",
+                    border: "1px solid var(--cn-border)",
+                    boxShadow: "var(--cn-shadow)",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cn-surface-2)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--cn-card)"; }}
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <h3 className="text-white font-bold">{f.q}</h3>
-                    <span className="text-indigo-300 font-bold">
+                    <h3 className="font-bold text-sm sm:text-base" style={{ color: "var(--cn-text)" }}>{f.q}</h3>
+                    <span style={{ color: "var(--cn-primary)" }} className="font-bold">
                       {isOpen ? "−" : "+"}
                     </span>
                   </div>
@@ -59,7 +66,7 @@ function FAQ() {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <p className="text-slate-300">{f.a}</p>
+                      <p className="text-xs sm:text-sm leading-relaxed" style={{ color: "var(--cn-text-2)" }}>{f.a}</p>
                     </div>
                   </div>
                 </button>
@@ -73,3 +80,4 @@ function FAQ() {
 }
 
 export default FAQ;
+

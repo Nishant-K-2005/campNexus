@@ -5,11 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, Bell, LogOut, User, Settings, ChevronDown, ShieldCheck, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import useAuthStore from "@/store/authStore";
+import useActivityStore from "@/store/activityStore";
 import { useRouter } from "next/navigation";
-import { getSocket, disconnectSocket } from "@/lib/socket";
-import { toast } from "sonner";
-
-const MAX_NOTIFS = 20;
+import { disconnectSocket } from "@/lib/socket";
 
 /* ── status colours matching Discussions view ─── */
 const statusStyle = {
@@ -18,13 +16,13 @@ const statusStyle = {
   Flagged:   { bg: "rgba(239,68,68,0.1)",  color: "#EF4444", icon: "🚩" },
 };
 
-export default function Navbar({ activeTab, onMobileMenu }) {
+export default function Navbar({ activeTab, onMobileMenu, onToggleRight, rightOpen }) {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, profile, logout } = useAuthStore();
+  const { notifications, reputation, markRead, markAllRead, clearNotifications: clearAll } = useActivityStore();
   const [showNotifs, setShowNotifs]   = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [notifications, setNotifications] = useState([]);
 
   const notifRef   = useRef(null);
   const profileRef = useRef(null);
@@ -32,55 +30,16 @@ export default function Navbar({ activeTab, onMobileMenu }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const tabLabels = {
-    dashboard:    "Dashboard",
+    dashboard:    "Home Feed",
     communities:  "Communities",
     declarations: "Declarations",
     discussions:  "Discussions",
     resources:    "Resources",
+    notifications: "Notification Center",
+    profile:      "My Profile",
+    admin:        "Admin Dashboard",
     settings:     "Settings",
   };
-
-  /* ── Socket.io connection ─────────────────────── */
-  useEffect(() => {
-    if (!user?.user_id) return;
-
-    const socket = getSocket(user.user_id);
-    if (!socket) return;
-
-    const handleModeration = (data) => {
-      const style = statusStyle[data.status] || { icon: "🔔", color: "var(--cn-primary)" };
-
-      /* Push into in-app notification list */
-      const notif = {
-        id:      `${data.postId}-${Date.now()}`,
-        icon:    style.icon,
-        color:   style.color,
-        text:    data.message || `Your post was ${data.status?.toLowerCase()}.`,
-        time:    "just now",
-        status:  data.status,
-        postId:  data.postId,
-        read:    false,
-      };
-
-      setNotifications((prev) => [notif, ...prev].slice(0, MAX_NOTIFS));
-
-      /* Also show a sonner toast */
-      if (data.status === "Accepted") {
-        toast.success("🎉 Post Approved!", {
-          description: data.message || "Your post is now live.",
-          duration: 5000,
-        });
-      } else {
-        toast.error("❌ Post Rejected", {
-          description: data.message || "Your post didn't meet community guidelines.",
-          duration: 6000,
-        });
-      }
-    };
-
-    socket.on("moderation-data", handleModeration);
-    return () => socket.off("moderation-data", handleModeration);
-  }, [user?.user_id]);
 
   /* ── Close dropdowns on outside click ────────── */
   useEffect(() => {
@@ -97,11 +56,6 @@ export default function Navbar({ activeTab, onMobileMenu }) {
     await logout();
     router.push("/auth/login");
   };
-
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-
-  const clearAll = () => setNotifications([]);
 
   const initials = user?.full_name
     ? user.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -167,8 +121,38 @@ export default function Navbar({ activeTab, onMobileMenu }) {
 
       {/* Right actions */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Theme toggle */}
+        {/* Reputation badge */}
+        <div
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+          style={{
+            background: "var(--cn-primary-l)",
+            color: "var(--cn-primary)",
+            border: "1px solid rgba(99,102,241,0.2)",
+          }}
+        >
+          ⭐ {profile?.reputation_points ?? reputation} rep
+        </div>
+
         <ThemeToggle size="sm" />
+
+        {/* Toggle right panel */}
+        {onToggleRight && (
+          <button
+            onClick={onToggleRight}
+            className="hidden xl:flex w-9 h-9 items-center justify-center rounded-xl cursor-pointer transition-all"
+            style={{
+              background: rightOpen ? "var(--cn-primary-l)" : "transparent",
+              border: `1.5px solid ${rightOpen ? "var(--cn-primary)" : "var(--cn-border)"}`,
+              color: "var(--cn-text-2)",
+            }}
+            aria-label="Toggle activity panel"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="1" y="2" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M10 2v12" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+          </button>
+        )}
 
         {/* ── Notifications ── */}
         <div className="relative" ref={notifRef}>
@@ -259,11 +243,7 @@ export default function Navbar({ activeTab, onMobileMenu }) {
                           background:   !notif.read ? "var(--cn-primary-l)" : "transparent",
                           borderBottom: "1px solid var(--cn-border)",
                         }}
-                        onClick={() =>
-                          setNotifications((prev) =>
-                            prev.map((n) => n.id === notif.id ? { ...n, read: true } : n)
-                          )
-                        }
+                        onClick={() => markRead(notif.id)}
                         onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cn-surface-2)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = !notif.read ? "var(--cn-primary-l)" : "transparent"; }}
                       >
@@ -297,13 +277,22 @@ export default function Navbar({ activeTab, onMobileMenu }) {
 
                 {/* Footer */}
                 <div
-                  className="px-4 py-2.5 flex items-center gap-2"
+                  className="px-4 py-2.5 flex items-center justify-between"
                   style={{ borderTop: "1px solid var(--cn-border)" }}
                 >
-                  <ShieldCheck style={{ width: 12, height: 12, color: "var(--cn-success)" }} />
-                  <p className="text-[10px]" style={{ color: "var(--cn-text-4)" }}>
-                    AI moderation results appear here in real-time
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck style={{ width: 12, height: 12, color: "var(--cn-success)" }} />
+                    <p className="text-[10px]" style={{ color: "var(--cn-text-4)" }}>
+                      AI moderation active
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { router.push("/notifications"); setShowNotifs(false); }}
+                    className="text-[11px] font-semibold cursor-pointer"
+                    style={{ color: "var(--cn-primary)" }}
+                  >
+                    View all →
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -361,11 +350,12 @@ export default function Navbar({ activeTab, onMobileMenu }) {
                 </div>
 
                 {[
-                  { label: "View Profile", icon: User },
-                  { label: "Settings",     icon: Settings },
-                ].map(({ label, icon: Icon }) => (
+                  { label: "View Profile", icon: User, path: "/profile" },
+                  { label: "Settings",     icon: Settings, path: "/settings" },
+                ].map(({ label, icon: Icon, path }) => (
                   <button
                     key={label}
+                    onClick={() => { router.push(path); setShowProfile(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all cursor-pointer text-left"
                     style={{ color: "var(--cn-text-2)" }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = "var(--cn-surface-2)"; }}

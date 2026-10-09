@@ -146,7 +146,7 @@ export default function CommunityDetailPage({ params }: PageProps) {
           setAiProcessingState((prev) => ({ ...prev, isOpen: false, status: 'idle' }));
           setFileAttachment(null);
           queryClient.invalidateQueries({ queryKey: ['discussions', communityId] });
-          toast.success('Discussion post submitted for AI verification!');
+          toast.success('Submitted for AI review. It will appear only if approved.');
         }, 1200);
       }, 800);
     },
@@ -183,7 +183,7 @@ export default function CommunityDetailPage({ params }: PageProps) {
           setAiProcessingState((prev) => ({ ...prev, isOpen: false, status: 'idle' }));
           setFileAttachment(null);
           queryClient.invalidateQueries({ queryKey: ['resources', communityId] });
-          toast.success('Academic resource uploaded successfully for AI verification!');
+          toast.success('Submitted for AI review. It will appear only if approved.');
         }, 1200);
       }, 800);
     },
@@ -242,13 +242,17 @@ export default function CommunityDetailPage({ params }: PageProps) {
 
   // Filters posts by search input
   const filteredDiscussions = discussions.filter((d) =>
-    d.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (d.user?.full_name && d.user.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
+    d.status === 'Accepted' && (
+      d.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (d.user?.full_name && d.user.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
   );
 
   const filteredResources = resources.filter((r) =>
-    r.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (r.attachments && r.attachments[0]?.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    r.status === 'Accepted' && (
+      r.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (r.attachments && r.attachments[0]?.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
   );
 
   if (loadingCommunityInfo) {

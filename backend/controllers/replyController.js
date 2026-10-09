@@ -17,7 +17,7 @@ export const sendReply = async (req,res) =>{
         })
     }catch(err){
         console.log("sendReply error: ",err);
-        return res.status(500).json({error:"Cannot send reply: Internal Server Error"})
+        return res.status(err.status || 500).json({error:err.message || "Cannot send reply: Internal Server Error"})
     }
 }
 
@@ -32,7 +32,7 @@ export const getReplies = async (req,res) =>{
         })
     }catch(err){
         console.log("getReplies Error: ",err);
-        return res.status(500).json({error:"Error fetching Replies: Internal Server Error"})
+        return res.status(err.status || 500).json({error:err.message || "Error fetching Replies: Internal Server Error"})
     }
 } 
 

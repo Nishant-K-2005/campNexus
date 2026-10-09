@@ -24,4 +24,16 @@ const uploadFile = async (file,postType) => {
     }
 }
 
+export const deleteFileByUrl = async (url) => {
+    if (!url) return;
+    const marker = '/campnexus-resources/';
+    const idx = url.indexOf(marker);
+    if (idx === -1) return;
+    const filePath = decodeURIComponent(url.slice(idx + marker.length).split('?')[0]);
+    const { error } = await supabase.storage.from('campnexus-resources').remove([filePath]);
+    if (error) {
+        console.error('Failed to delete rejected upload:', error.message);
+    }
+};
+
 export default uploadFile

@@ -7,6 +7,10 @@ export const send_reply_service = async ({ user_id,
     parent_id,
     content,
 }) => {
+    const targetPost = await getPostById(post_id);
+    if (!targetPost || targetPost.status !== 'Accepted') {
+        throw new AppError("Post not found", 404);
+    }
     let depth = 0;
     if (parent_id) {
         const parent = await getReplyById(parent_id);
@@ -28,6 +32,10 @@ export const send_reply_service = async ({ user_id,
 }
 
 export const get_replies_service = async (post_id, parent_id = null) => {
+    const post = await getPostById(post_id);
+    if (!post || post.status !== 'Accepted') {
+        throw new AppError("Post not found", 404);
+    }
     return await getRepliesByPostId(post_id, parent_id);
 }
 

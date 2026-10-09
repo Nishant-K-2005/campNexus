@@ -1,7 +1,8 @@
 import { Worker } from "bullmq";
 import { redisConnection } from "../config/redisConnection.js";
 import { getCommunityById, getCommunityEmbedding, updateCommunity, updateCommunityEmbedding } from "../repositories/community.repo.js";
-import { getPostById, updatePost, updatePostEmbedding } from "../repositories/post.repo.js";
+import { getPostById, updatePost, updatePostEmbedding, deletePostById } from "../repositories/post.repo.js";
+import { deleteFileByUrl } from "../services/storage.service.js";
 import { PostStatus } from "@prisma/client";
 
 let pyBackendUrl;
@@ -82,19 +83,25 @@ const worker = new Worker(
             const score = await fetchScore(categoryEmbedding,embedding);
 
             const isValid = score >= 0.55;
-            let status = PostStatus.Rejected
-            if (isValid) {
-                status = PostStatus.Accepted
-            }
+            const status = isValid ? PostStatus.Accepted : PostStatus.Rejected;
             console.log("data: ", score, " status: ", status);
-            await updatePost(id, { status })
+
+            if (isValid) {
+                await updatePost(id, { status })
+            } else {
+                for (const attachment of dbObj.attachments || []) {
+                    await deleteFileByUrl(attachment.url);
+                }
+                await deletePostById(id);
+            }
+
             await redisConnection.publish('worker_notification', JSON.stringify({
                 userId: dbObj.user_id,
                 postId: id,
                 status: status,
-                message: score >= 0.55
-                    ? "your post has been approved and is now live!"
-                    : "your post was rejected for not matching community guidelines."
+                message: isValid
+                    ? "Your post has been approved and is now live!"
+                    : "Your post was not published because it did not match this community."
             }))
         }
     },

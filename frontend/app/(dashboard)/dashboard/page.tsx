@@ -68,6 +68,7 @@ export default function DashboardPage() {
   });
 
   const filteredPosts = feedPosts.filter((post) => {
+    if (post.status !== 'Accepted') return false;
     if (filterType === 'all') return true;
     return post.type === filterType;
   });

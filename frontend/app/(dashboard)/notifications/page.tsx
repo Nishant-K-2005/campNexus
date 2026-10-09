@@ -199,7 +199,7 @@ export default function NotificationsPage() {
                   <span>3. Auto Moderation</span>
                 </div>
                 <p className="pl-3">
-                  Off-topic posts are automatically hidden and marked as Rejected. You will be notified instantly if this happens.
+                  Off-topic posts are not published. You will be notified instantly if this happens.
                 </p>
               </div>
             </div>

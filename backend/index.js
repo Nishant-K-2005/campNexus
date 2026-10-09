@@ -9,6 +9,7 @@ import resourceRoutes from './routes/resourceRoute.js'
 import discussionRoutes from './routes/discussionRoute.js'
 import replyRoutes from './routes/replyRoute.js'
 import { initSocket } from './socket/socket.js'
+import './workers/ai.worker.js';
 
 dotenv.config()
 

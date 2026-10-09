@@ -19,10 +19,22 @@ const port = process.env.PORT||5000
 
 app.use(express.json())
 app.use(cookieParser())
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}))
+
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:3000").split(",");
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow requests with no origin (Postman, curl, server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 const server = http.createServer(app)
 initSocket(server)

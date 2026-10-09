@@ -1,25 +1,24 @@
 import os
+import httpx
 import numpy as np
-from huggingface_hub import InferenceClient
 
-_client = None
+OPENROUTER_URL = "https://openrouter.ai/api/v1/embeddings"
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "baai/bge-base-en-v1.5")
 
-def _get_client() -> InferenceClient:
-    global _client
-    if _client is None:
-        _client = InferenceClient(
-            provider="hf-inference",
-            api_key=os.environ["HF_TOKEN"],
-            timeout=60,
-        )
-    return _client
+_client = httpx.Client(timeout=60)
 
 def generateEmbedding(text: str):
-    result = _get_client().feature_extraction(
-        text,
-        model="BAAI/bge-small-en-v1.5",
+    response = _client.post(
+        OPENROUTER_URL,
+        headers={
+            "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
+            "Content-Type": "application/json",
+        },
+        json={"model": EMBEDDING_MODEL, "input": text},
     )
-    vec = np.asarray(result, dtype=np.float32).reshape(-1)  # flatten to 1D (384,)
+    response.raise_for_status()
+
+    vec = np.asarray(response.json()["data"][0]["embedding"], dtype=np.float32)
 
     # same as normalize_embeddings=True
     norm = np.linalg.norm(vec)

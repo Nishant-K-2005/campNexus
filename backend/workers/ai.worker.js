@@ -4,6 +4,8 @@ import { getCommunityById, getCommunityEmbedding, updateCommunity, updateCommuni
 import { getPostById, updatePost, updatePostEmbedding } from "../repositories/post.repo.js";
 import { PostStatus } from "@prisma/client";
 
+let pyBackendUrl;
+
 async function generateEmbedding(id, type) {
     const formData = new FormData()
     let content = '';
@@ -33,7 +35,7 @@ async function generateEmbedding(id, type) {
         }
     }
     formData.append("text", content);
-    const res = await fetch("http://localhost:8000/api/embeddings", {
+    const res = await fetch(pyBackendUrl+"/api/embeddings", {
         method: 'POST',
         body: formData
     })
@@ -48,7 +50,7 @@ async function generateEmbedding(id, type) {
 
 
 async function fetchScore(categoryEmbedding, contentEmbedding) {
-    const res = await fetch("http://localhost:8000/api/scores", {
+    const res = await fetch(pyBackendUrl+"/api/scores", {
         method: 'POST',
         headers: {
             "content-type": "application/json"
@@ -66,6 +68,7 @@ async function fetchScore(categoryEmbedding, contentEmbedding) {
 const worker = new Worker(
     'ai-queue',
     async job => {
+        pyBackendUrl = process.env.PY_BACKEND_URL
         const { id, type } = job.data;
 
         const { embedding, dbObj } = await generateEmbedding(id, type);

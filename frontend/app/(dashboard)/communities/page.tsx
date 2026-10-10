@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -11,13 +11,15 @@ import {
   Users,
   Plus,
   Search,
-  Tag,
   Loader2,
   X,
   Compass,
-  CheckCircle,
-  HelpCircle,
   Hash,
+  TrendingUp,
+  Clock,
+  AlignLeft,
+  AlertCircle,
+  ArrowUpDown,
 } from 'lucide-react';
 import { communitiesApi } from '@/lib/api/communities';
 import { Community } from '@/types';
@@ -31,57 +33,78 @@ const communitySchema = z.object({
 });
 
 type CommunityFormValues = z.infer<typeof communitySchema>;
+type SortOption = 'latest' | 'popular' | 'alphabetical';
 
-// Predefined discovery communities to join
-const DISCOVER_COMMUNITIES = [
-  {
-    community_id: 'ML-Tribe-CS401',
-    name: 'Machine Learning Tribe',
-    description: 'Deep discussions around linear regression, neural networks, and classification theory.',
-    tags: ['CS-401', 'ML', 'Python', 'AI'],
-  },
-  {
-    community_id: 'Calculus-II-Study',
-    name: 'Calculus II study',
-    description: 'Peer support group for solving integration techniques, series convergence, and calculus limits.',
-    tags: ['Math', 'Calculus', 'Limits', 'Integrals'],
-  },
-  {
-    community_id: 'Robotics-Engineering-Club',
-    name: 'Robotics Engineering Club',
-    description: 'Building autonomous rovers and drones. Share blueprints, sensor configs, and code guides.',
-    tags: ['Engineering', 'Robotics', 'C++', 'Hardware'],
-  },
-  {
-    community_id: 'Design-Aesthetics-Studio',
-    name: 'Design Aesthetics Studio',
-    description: 'Critique and share user interface layouts, micro-interaction mockups, and layout grids.',
-    tags: ['Design', 'UI', 'UX', 'Figma'],
-  },
+const SORT_OPTIONS: { value: SortOption; label: string; icon: React.ReactNode }[] = [
+  { value: 'latest', label: 'Latest', icon: <Clock className="w-3.5 h-3.5" /> },
+  { value: 'popular', label: 'Popular', icon: <TrendingUp className="w-3.5 h-3.5" /> },
+  { value: 'alphabetical', label: 'A–Z', icon: <AlignLeft className="w-3.5 h-3.5" /> },
 ];
+
+function sortCommunities(communities: Community[], sort: SortOption): Community[] {
+  switch (sort) {
+    case 'latest':
+      return [...communities].sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      });
+    case 'popular':
+      return [...communities].sort((a, b) => (b.member_count ?? 0) - (a.member_count ?? 0));
+    case 'alphabetical':
+      return [...communities].sort((a, b) => a.name.localeCompare(b.name));
+    default:
+      return communities;
+  }
+}
+
+function timeAgo(dateStr?: string): string {
+  if (!dateStr) return '';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
 
 export default function CommunitiesPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'joined' | 'discover'>('joined');
+  const [sortOption, setSortOption] = useState<SortOption>('latest');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tagsList, setTagsList] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
 
-  // 1. Fetch all communities from the database
-  const { data: allCommunities = [], isLoading } = useQuery<Community[]>({
+  // Fetch ALL communities from the database (returns all communities + current user's membership role)
+  const { data: allCommunities = [], isLoading, isError, refetch } = useQuery<Community[]>({
     queryKey: ['communities'],
     queryFn: communitiesApi.getCommunities,
+    staleTime: 30_000, // 30s — still fresh enough, refetch on window focus
+    refetchOnWindowFocus: true,
   });
 
-  const joinedCommunities = allCommunities.filter(
-    (c) => c.role === 'Member' || c.role === 'Moderator'
+  // Communities where user is a member or moderator
+  const joinedCommunities = useMemo(() =>
+    allCommunities.filter((c) => c.role === 'Member' || c.role === 'Moderator'),
+    [allCommunities]
+  );
+
+  // All public communities NOT yet joined by the current user (other users' communities)
+  const discoverCommunities = useMemo(() =>
+    allCommunities.filter((c) => !c.role),
+    [allCommunities]
   );
 
   // 2. Join Community Mutation
   const joinMutation = useMutation({
     mutationFn: communitiesApi.joinCommunity,
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success('Successfully joined community!');
       queryClient.invalidateQueries({ queryKey: ['communities'] });
     },
@@ -94,11 +117,12 @@ export default function CommunitiesPage() {
   // 3. Create Community Mutation
   const createMutation = useMutation({
     mutationFn: communitiesApi.createCommunity,
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success('Community created successfully!');
       setIsModalOpen(false);
       setTagsList([]);
       reset();
+      // Invalidate so both "My Communities" and "Explore" immediately reflect the new community
       queryClient.invalidateQueries({ queryKey: ['communities'] });
     },
     onError: (err: any) => {
@@ -147,29 +171,26 @@ export default function CommunitiesPage() {
     });
   };
 
-  // Filters joined communities by search input
-  const filteredJoined = joinedCommunities.filter((c) => {
+  // Filter + sort for the active tab
+  const filteredJoined = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return (
+    const filtered = joinedCommunities.filter((c) =>
       c.name.toLowerCase().includes(query) ||
       (c.description && c.description.toLowerCase().includes(query)) ||
       c.tags.some((t) => t.toLowerCase().includes(query))
     );
-  });
+    return sortCommunities(filtered, sortOption);
+  }, [joinedCommunities, searchQuery, sortOption]);
 
-  // Filters discover communities (excluding ones already joined)
-  const nonJoinedDiscover = allCommunities.filter(
-    (c) => !c.role
-  );
-
-  const filteredDiscover = nonJoinedDiscover.filter((dc) => {
+  const filteredDiscover = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return (
+    const filtered = discoverCommunities.filter((dc) =>
       dc.name.toLowerCase().includes(query) ||
       (dc.description && dc.description.toLowerCase().includes(query)) ||
       dc.tags.some((t) => t.toLowerCase().includes(query))
     );
-  });
+    return sortCommunities(filtered, sortOption);
+  }, [discoverCommunities, searchQuery, sortOption]);
 
   return (
     <div className="space-y-8">
@@ -190,44 +211,83 @@ export default function CommunitiesPage() {
         </button>
       </div>
 
-      {/* Search and Navigation Tabs */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        {/* Search */}
-        <div className="relative w-full md:max-w-md">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-indigo-400">
-            <Search className="w-5 h-5" />
-          </span>
-          <input
-            type="text"
-            placeholder="Search by community name, course code, or tags..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 rounded-xl border border-white/10 bg-black/40 text-white placeholder-indigo-300/30 focus:outline-none focus:border-accent-indigo transition"
-          />
+      {/* Search, Tabs, and Sort */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Search */}
+          <div className="relative w-full md:max-w-md">
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-indigo-400">
+              <Search className="w-5 h-5" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name, description, or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 rounded-xl border border-white/10 bg-black/40 text-white placeholder-indigo-300/30 focus:outline-none focus:border-accent-indigo transition"
+            />
+          </div>
+
+          {/* Tab Controls */}
+          <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 w-full md:w-auto">
+            <button
+              onClick={() => setActiveTab('joined')}
+              className={`flex-1 md:flex-initial px-5 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 ${
+                activeTab === 'joined' ? 'bg-accent-indigo text-white shadow' : 'text-indigo-200/50 hover:text-white'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>My Communities ({joinedCommunities.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('discover')}
+              className={`flex-1 md:flex-initial px-5 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 ${
+                activeTab === 'discover' ? 'bg-accent-indigo text-white shadow' : 'text-indigo-200/50 hover:text-white'
+              }`}
+            >
+              <Compass className="w-4 h-4" />
+              <span>Explore ({discoverCommunities.length})</span>
+            </button>
+          </div>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 w-full md:w-auto">
-          <button
-            onClick={() => setActiveTab('joined')}
-            className={`flex-1 md:flex-initial px-5 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 ${
-              activeTab === 'joined' ? 'bg-accent-indigo text-white shadow' : 'text-indigo-200/50 hover:text-white'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>My Communities ({joinedCommunities.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('discover')}
-            className={`flex-1 md:flex-initial px-5 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 ${
-              activeTab === 'discover' ? 'bg-accent-indigo text-white shadow' : 'text-indigo-200/50 hover:text-white'
-            }`}
-          >
-            <Compass className="w-4 h-4" />
-            <span>Explore Discovery</span>
-          </button>
+        {/* Sort Options */}
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="w-3.5 h-3.5 text-indigo-400/60 flex-shrink-0" />
+          <span className="text-[11px] text-indigo-300/50 font-medium uppercase tracking-wider mr-1">Sort:</span>
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSortOption(opt.value)}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition ${
+                sortOption === opt.value
+                  ? 'bg-accent-indigo/20 text-accent-indigo border border-accent-indigo/30'
+                  : 'text-indigo-300/40 hover:text-indigo-200/70 border border-white/5 hover:border-white/10'
+              }`}
+            >
+              {opt.icon}
+              <span>{opt.label}</span>
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Error State */}
+      {isError && (
+        <div className="glass-card p-6 rounded-2xl border border-red-500/20 flex items-center gap-4">
+          <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0" />
+          <div>
+            <p className="text-white font-semibold text-sm">Failed to load communities</p>
+            <p className="text-xs text-indigo-200/50 mt-0.5">Could not connect to the server. Check your connection.</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="ml-auto px-4 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-white transition"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Main Grid display */}
       <AnimatePresence mode="wait">
@@ -238,24 +298,34 @@ export default function CommunitiesPage() {
           exit={{ opacity: 0, y: -15 }}
           className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {activeTab === 'joined' ? (
-            isLoading ? (
-              [1, 2, 3].map((n) => (
-                <div key={n} className="h-48 rounded-2xl bg-white/5 animate-pulse border border-white/5" />
-              ))
-            ) : filteredJoined.length === 0 ? (
+          {isLoading ? (
+            [1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="h-52 rounded-2xl bg-white/5 animate-pulse border border-white/5" />
+            ))
+          ) : activeTab === 'joined' ? (
+            filteredJoined.length === 0 ? (
               <div className="sm:col-span-2 lg:col-span-3 glass-card p-12 text-center space-y-4 max-w-md mx-auto w-full mt-6">
                 <Compass className="w-12 h-12 text-indigo-300/40 mx-auto" />
                 <h4 className="font-bold text-white text-lg">No Communities found</h4>
                 <p className="text-xs text-indigo-200/50">
-                  {searchQuery ? 'Try refining your search terms.' : 'Go to Explore Discovery to find communities to join!'}
+                  {searchQuery
+                    ? 'Try refining your search terms.'
+                    : 'Go to Explore to find communities to join!'}
                 </p>
+                {!searchQuery && (
+                  <button
+                    onClick={() => setActiveTab('discover')}
+                    className="mt-2 px-5 py-2.5 rounded-xl bg-accent-indigo/20 border border-accent-indigo/30 text-accent-indigo text-xs font-bold hover:bg-accent-indigo/30 transition"
+                  >
+                    Browse Explore
+                  </button>
+                )}
               </div>
             ) : (
               filteredJoined.map((community) => (
                 <motion.div
                   key={community.community_id}
-                  layoutId={community.community_id}
+                  layoutId={`joined-${community.community_id}`}
                   className="glass-card p-6 rounded-3xl border border-white/5 flex flex-col justify-between h-52 glass-card-hover group relative overflow-hidden"
                 >
                   <div className="space-y-3">
@@ -264,17 +334,21 @@ export default function CommunitiesPage() {
                         {community.name}
                       </h3>
                       {community.role && (
-                        <span className="text-[10px] font-bold tracking-wider uppercase bg-accent-indigo/10 text-accent-indigo border border-accent-indigo/10 px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-bold tracking-wider uppercase bg-accent-indigo/10 text-accent-indigo border border-accent-indigo/10 px-2 py-0.5 rounded-md flex-shrink-0">
                           {community.role}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-indigo-200/50 leading-relaxed line-clamp-3">
+                    <p className="text-xs text-indigo-200/50 leading-relaxed line-clamp-2">
                       {community.description || 'No description provided.'}
+                    </p>
+                    <p className="text-[10px] text-indigo-300/30">
+                      {community.member_count ?? 0} members · {community.post_count ?? 0} posts
+                      {community.created_at && ` · ${timeAgo(community.created_at)}`}
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 pt-4">
+                  <div className="flex flex-wrap gap-1.5 pt-3">
                     {community.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
@@ -304,25 +378,45 @@ export default function CommunitiesPage() {
             <div className="sm:col-span-2 lg:col-span-3 glass-card p-12 text-center space-y-4 max-w-md mx-auto w-full mt-6">
               <Compass className="w-12 h-12 text-indigo-300/40 mx-auto" />
               <h4 className="font-bold text-white text-lg">No Communities to discover</h4>
-              <p className="text-xs text-indigo-200/50">You have joined all recommended communities.</p>
+              <p className="text-xs text-indigo-200/50">
+                {searchQuery
+                  ? 'Try refining your search terms.'
+                  : 'You have joined every community, or no public communities exist yet. Create one!'}
+              </p>
+              {!searchQuery && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-2 px-5 py-2.5 rounded-xl bg-accent-indigo/20 border border-accent-indigo/30 text-accent-indigo text-xs font-bold hover:bg-accent-indigo/30 transition"
+                >
+                  + Create Community
+                </button>
+              )}
             </div>
           ) : (
             filteredDiscover.map((dc) => (
               <motion.div
                 key={dc.community_id}
-                layoutId={dc.community_id}
-                className="glass-card p-6 rounded-3xl border border-white/5 flex flex-col justify-between h-56 relative overflow-hidden"
+                layoutId={`discover-${dc.community_id}`}
+                className="glass-card p-6 rounded-3xl border border-white/5 flex flex-col justify-between h-64 relative overflow-hidden"
               >
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <h3 className="font-extrabold text-lg text-white line-clamp-1">{dc.name}</h3>
-                  <p className="text-xs text-indigo-200/50 leading-relaxed line-clamp-3">
+                  <p className="text-xs text-indigo-200/50 leading-relaxed line-clamp-2">
                     {dc.description}
+                  </p>
+                  <p className="text-[10px] text-indigo-300/30">
+                    By <span className="text-indigo-300/50 font-semibold">{dc.created_by?.full_name || 'a student'}</span>
+                    {' · '}
+                    <span>{dc.member_count ?? 0} members</span>
+                    {' · '}
+                    <span>{dc.post_count ?? 0} posts</span>
+                    {dc.created_at && ` · ${timeAgo(dc.created_at)}`}
                   </p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex flex-wrap gap-1.5">
-                    {dc.tags.map((tag) => (
+                    {dc.tags.slice(0, 4).map((tag) => (
                       <span
                         key={tag}
                         className="text-[9px] font-semibold text-indigo-200/40 bg-white/5 px-2 py-0.5 rounded-md border border-white/5"
@@ -332,20 +426,28 @@ export default function CommunitiesPage() {
                     ))}
                   </div>
 
-                  <button
-                    onClick={() => joinMutation.mutate(dc.community_id)}
-                    disabled={joinMutation.isPending}
-                    className="w-full py-2.5 rounded-xl border border-white/5 hover:border-accent-indigo/35 bg-white/5 hover:bg-accent-indigo text-xs font-bold text-indigo-100 hover:text-white transition duration-200 flex items-center justify-center space-x-1.5"
-                  >
-                    {joinMutation.isPending && joinMutation.variables === dc.community_id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Users className="w-4 h-4" />
-                        <span>Join Community</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/communities/${dc.community_id}`}
+                      className="flex-1 py-2.5 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 text-xs font-bold text-indigo-100 text-center transition z-10 relative"
+                    >
+                      View
+                    </Link>
+                    <button
+                      onClick={() => joinMutation.mutate(dc.community_id)}
+                      disabled={joinMutation.isPending && joinMutation.variables === dc.community_id}
+                      className="flex-1 py-2.5 rounded-xl border border-white/5 hover:border-accent-indigo/35 bg-white/5 hover:bg-accent-indigo text-xs font-bold text-indigo-100 hover:text-white transition duration-200 flex items-center justify-center space-x-1.5 z-10 relative"
+                    >
+                      {joinMutation.isPending && joinMutation.variables === dc.community_id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Users className="w-4 h-4" />
+                          <span>Join</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))

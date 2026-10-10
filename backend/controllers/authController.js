@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs"
 import prisma from "../config/dbConnection.js"
 import signToken from "../utils/generateToken.js"
 import { login_service, signup_service, delete_user_service } from "../services/auth.service.js";
-import { findUserById, findUserProfile } from "../repositories/user.repo.js";
+import { ensureUserProfile } from "../repositories/user.repo.js";
 
 export const signup = async (req, res) => {
     try {
@@ -19,7 +19,7 @@ export const signup = async (req, res) => {
     } catch (err) {
         console.log(err.message);
         return res.status(
-            err.statusCode || 500
+            err.status || err.statusCode || 500
         ).json({
             error: err.message || "Sign-up error: something went wrong"
         })
@@ -41,7 +41,7 @@ export const login = async (req, res) => {
     } catch (err) {
         console.log(err.message);
         return res.status(
-            err.statusCode || 500
+            err.status || err.statusCode || 500
         ).json({
             error: err.message || "Login error: something went wrong"
         })
@@ -60,7 +60,7 @@ export const logout = async (req, res) => {
 }
 
 export const session = async (req, res) => {
-    const profile = await findUserProfile(req.user.user_id)
+    const profile = await ensureUserProfile(req.user.user_id)
     res.status(200).json({
         user: req.user,
         profile: profile,

@@ -63,6 +63,7 @@ model Community {
   tags String[]
   embedding_vector Unsupported("vector(384)")?
   created_by_user_id String
+  created_at DateTime @default(now())
   deleted_at DateTime?
   purge_at DateTime?
 

@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs"
-import { createUserWithProfile, findUserByEmail, deleteUserById, findUserById } from "../repositories/user.repo.js"
+import { createUserWithProfile, findUserByEmail, deleteUserById, findUserById, ensureUserProfile } from "../repositories/user.repo.js"
 import { AppError } from "../errors/app.error.js";
 
 export const signup_service = async ({ email, pass, full_name, role }) => {
@@ -21,6 +21,9 @@ export const login_service = async ({ email, pass }) => {
     const isPassValid = await bcrypt.compare(pass, user.pass_hash)
     if (!isPassValid) {
         throw new AppError("invalid email or password",401)
+    }
+    if (!user.profile) {
+        user.profile = await ensureUserProfile(user.user_id);
     }
     return user;
 }

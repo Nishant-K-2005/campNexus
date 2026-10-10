@@ -20,7 +20,71 @@ export const getCommunityById = (community_id) => {
 }
 
 export const fetchAllCommunities = () => {
-    return prisma.Community.findMany()
+    return prisma.community.findMany({
+        where: { deleted_at: null },
+        include: {
+            created_by_user: {
+                select: { user_id: true, full_name: true },
+            },
+            _count: {
+                select: {
+                    posts: { where: { deleted_at: null, status: 'Accepted' } },
+                    members: { where: { left_at: null } },
+                },
+            },
+        },
+        orderBy: { created_at: 'desc' },
+    })
+}
+
+export const getAllCommunitiesWithMembership = (user_id) => {
+    return prisma.community.findMany({
+        where: { deleted_at: null },
+        include: {
+            members: {
+                where: { user_id, left_at: null },
+                select: { role: true },
+            },
+            created_by_user: {
+                select: {
+                    user_id: true,
+                    full_name: true,
+                },
+            },
+            _count: {
+                select: {
+                    posts: {
+                        where: { deleted_at: null, status: 'Accepted' },
+                    },
+                    members: {
+                        where: { left_at: null },
+                    },
+                },
+            },
+        },
+        orderBy: { created_at: 'desc' },
+    })
+}
+
+export const getCommunityMember = (user_id, community_id) => {
+    return prisma.communityMember.findUnique({
+        where: {
+            user_id_community_id: { user_id, community_id },
+        },
+    })
+}
+
+export const restoreCommunityMember = (user_id, community_id) => {
+    return prisma.communityMember.update({
+        where: {
+            user_id_community_id: { user_id, community_id },
+        },
+        data: {
+            left_at: null,
+            role: 'Member',
+            joined_at: new Date(),
+        },
+    })
 }
 
 export const createCommunityMember = (user_id, community_id) => {

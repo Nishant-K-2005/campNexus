@@ -105,6 +105,19 @@ export default function CommunityDetailPage({ params }: PageProps) {
   });
 
   // 4. Delete Post Mutation (for both discussions and resources)
+  const isMember = activeCommunity?.role === 'Member' || activeCommunity?.role === 'Moderator';
+
+  const joinMutation = useMutation({
+    mutationFn: communitiesApi.joinCommunity,
+    onSuccess: () => {
+      toast.success('Successfully joined community!');
+      queryClient.invalidateQueries({ queryKey: ['communities'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error || 'Failed to join community.');
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async ({ postId, type }: { postId: string; type: 'Discussion' | 'Resource' }) => {
       if (type === 'Discussion') {
@@ -263,13 +276,13 @@ export default function CommunityDetailPage({ params }: PageProps) {
     );
   }
 
-  if (!activeCommunity || !activeCommunity.role) {
+  if (!activeCommunity) {
     return (
       <div className="glass-card p-8 text-center max-w-md mx-auto space-y-4">
         <Lock className="w-12 h-12 text-red-400 mx-auto" />
-        <h3 className="text-xl font-bold text-white">Community Access Restricted</h3>
+        <h3 className="text-xl font-bold text-white">Community Not Found</h3>
         <p className="text-sm text-indigo-200/50">
-          You must be a member of this community to access resources. Go to the Communities search to join.
+          This community does not exist or was removed.
         </p>
         <Link
           href="/communities"
@@ -293,15 +306,21 @@ export default function CommunityDetailPage({ params }: PageProps) {
               <p className="text-indigo-200/60 text-sm max-w-2xl">{activeCommunity.description}</p>
             </div>
             
-            {/* Joined State Tag */}
             <div className="flex-shrink-0 flex items-center space-x-2">
-              <span className="px-3.5 py-1.5 rounded-full border border-green-500/20 bg-green-500/10 text-green-400 text-xs font-bold uppercase tracking-wider">
-                Joined Member
-              </span>
-              {activeCommunity.role === 'Moderator' && (
-                <span className="px-3.5 py-1.5 rounded-full border border-accent-indigo/20 bg-accent-indigo/10 text-accent-indigo text-xs font-bold uppercase tracking-wider">
-                  Moderator
-                </span>
+              {isMember ? (
+                <>
+                  <span className="px-3.5 py-1.5 rounded-full border border-green-500/20 bg-green-500/10 text-green-400 text-xs font-bold uppercase tracking-wider">
+                    {activeCommunity.role === 'Moderator' ? 'Moderator' : 'Joined Member'}
+                  </span>
+                </>
+              ) : (
+                <button
+                  onClick={() => joinMutation.mutate(communityId)}
+                  disabled={joinMutation.isPending}
+                  className="px-4 py-2 rounded-xl bg-accent-indigo hover:bg-accent-violet text-white text-xs font-bold transition disabled:opacity-50"
+                >
+                  {joinMutation.isPending ? 'Joining...' : 'Join Community'}
+                </button>
               )}
             </div>
           </div>
@@ -362,23 +381,24 @@ export default function CommunityDetailPage({ params }: PageProps) {
             />
           </div>
 
-          {/* Action Trigger */}
-          {activeTab === 'discussions' ? (
-            <button
-              onClick={() => setIsPostModalOpen(true)}
-              className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-accent-indigo hover:bg-accent-violet text-white text-xs font-semibold transition shadow-[0_4px_10px_rgba(99,102,241,0.2)]"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Discussion</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsResourceModalOpen(true)}
-              className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-accent-indigo hover:bg-accent-violet text-white text-xs font-semibold transition shadow-[0_4px_10px_rgba(99,102,241,0.2)]"
-            >
-              <Upload className="w-4 h-4" />
-              <span>Upload Document</span>
-            </button>
+          {isMember && (
+            activeTab === 'discussions' ? (
+              <button
+                onClick={() => setIsPostModalOpen(true)}
+                className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-accent-indigo hover:bg-accent-violet text-white text-xs font-semibold transition shadow-[0_4px_10px_rgba(99,102,241,0.2)]"
+              >
+                <Plus className="w-4 h-4" />
+                <span>New Discussion</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsResourceModalOpen(true)}
+                className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-accent-indigo hover:bg-accent-violet text-white text-xs font-semibold transition shadow-[0_4px_10px_rgba(99,102,241,0.2)]"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Upload Document</span>
+              </button>
+            )
           )}
         </div>
       </div>

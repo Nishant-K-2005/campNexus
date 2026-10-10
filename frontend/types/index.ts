@@ -24,8 +24,15 @@ export interface Community {
   description: string | null;
   tags: string[];
   created_by_user_id: string;
+  created_at?: string;
   deleted_at?: string | null;
-  role?: 'Member' | 'Moderator'; // Member role within the community if joined
+  role?: 'Member' | 'Moderator' | null;
+  created_by?: {
+    user_id: string;
+    full_name: string;
+  } | null;
+  post_count?: number;
+  member_count?: number;
 }
 
 export type PostType = 'Discussion' | 'Resource' | 'Announcement';

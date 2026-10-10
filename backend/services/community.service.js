@@ -1,4 +1,4 @@
-import { createCommunity, createCommunityMember, getCommunitiesJoinedByUser, deleteCommunityById ,getCommunityById } from "../repositories/community.repo.js"
+import { createCommunity, createCommunityMember, getAllCommunitiesWithMembership, deleteCommunityById ,getCommunityById, getCommunityMember, restoreCommunityMember } from "../repositories/community.repo.js"
 import { addContentToAiQueue } from "../utils/addToQueue.js";
 import { AppError } from "../errors/app.error.js";
 
@@ -9,17 +9,28 @@ export const create_community_service = async ({ name, description, tags, user_i
 }
 
 export const get_community_service = async (user_id) => {
-    const data = await getCommunitiesJoinedByUser(user_id);
-    return data.map(({ role, community }) => ({
+    const data = await getAllCommunitiesWithMembership(user_id);
+    return data.map(({ members, _count, created_by_user, ...community }) => ({
         ...community,
-        role
+        role: members[0]?.role ?? null,
+        created_by: created_by_user,
+        post_count: _count.posts,
+        member_count: _count.members,
+        // created_at is already spread in via ...community
     }))
 }
 
 export const join_community_service = async (user_id, community_id) => {
-    const community = getCommunityById(community_id);
+    const community = await getCommunityById(community_id);
     if(!community){
         throw new AppError("Community not found",404);
+    }
+    const existing = await getCommunityMember(user_id, community_id);
+    if (existing && !existing.left_at) {
+        return existing;
+    }
+    if (existing && existing.left_at) {
+        return await restoreCommunityMember(user_id, community_id);
     }
     return await createCommunityMember(user_id, community_id);
 }

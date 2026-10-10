@@ -1,3 +1,4 @@
+
 import prisma from "../config/dbConnection.js";
 
 export const findUserById = (user_id , includeProfile=false) => {
@@ -28,6 +29,19 @@ export const findUserProfile = (user_id) => {
     return prisma.profile.findUnique({
         where:{user_id}
     })
+}
+
+export const ensureUserProfile = async (user_id) => {
+    const existing = await prisma.profile.findUnique({
+        where: { user_id }
+    });
+    if (existing) return existing;
+    return prisma.profile.create({
+        data: {
+            user_id,
+            interested_tags: [],
+        }
+    });
 }
 
 export const createUserWithProfile = ({email, pass_hash, full_name, role}) => {

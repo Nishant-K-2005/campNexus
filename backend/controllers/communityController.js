@@ -42,7 +42,7 @@ export const getAllCommunities = async(req,res) => {
             message:"communities fetched successfully",
             communities: communities
         })
-    }catch{
+    }catch(err){
         console.log("Error Fetching communities", err)
         return res.status(500).json({error:"Cannot fetch communities: Internal server error"});
     }
@@ -58,7 +58,7 @@ export const joinCommunity = async (req, res) => {
         })
     } catch (err) {
         console.log("joinCommunity Error: ", err);
-        return res.status(500).json({ error: "Cannot join community: Internal Server Error" });
+        return res.status(err.status || 500).json({ error: err.message || "Cannot join community: Internal Server Error" });
     }
 }
 

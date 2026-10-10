@@ -252,23 +252,7 @@ export default function DiscussionThreadPage({ params }: PageProps) {
     );
   }
 
-  if (!activeCommunity || !activeCommunity.role) {
-    return (
-      <div className="glass-card p-8 text-center max-w-md mx-auto space-y-4">
-        <Lock className="w-12 h-12 text-red-400 mx-auto" />
-        <h3 className="text-xl font-bold text-white">Community Access Restricted</h3>
-        <p className="text-sm text-indigo-200/50">
-          You must be a member of this community to view discussions and comments. Go to the Communities search to join.
-        </p>
-        <Link
-          href="/communities"
-          className="inline-block px-5 py-2.5 rounded-xl bg-accent-indigo hover:bg-accent-violet transition font-semibold text-white text-sm"
-        >
-          Explore Communities
-        </Link>
-      </div>
-    );
-  }
+  const isMember = activeCommunity?.role === 'Member' || activeCommunity?.role === 'Moderator';
 
   const attachment = activePost.attachments?.[0];
 
@@ -375,6 +359,11 @@ export default function DiscussionThreadPage({ params }: PageProps) {
       </div>
 
       {/* New top-level comment input */}
+      {!isMember ? (
+        <div className="p-4 rounded-2xl border border-white/5 bg-white/5 text-xs text-indigo-200/50">
+          Join this community to reply to discussions.
+        </div>
+      ) : (
       <form onSubmit={handlePostTopReply} className="flex gap-3">
         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-accent-indigo to-accent-violet flex-shrink-0 flex items-center justify-center text-white text-xs font-bold border border-white/10">
           {user?.full_name?.charAt(0).toUpperCase() || 'U'}
@@ -399,6 +388,7 @@ export default function DiscussionThreadPage({ params }: PageProps) {
           )}
         </button>
       </form>
+      )}
 
       {/* Comments list */}
       {loadingReplies ? (

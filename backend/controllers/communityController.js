@@ -1,5 +1,5 @@
 import prisma from "../config/dbConnection.js";
-import { getCommunityById } from "../repositories/community.repo.js";
+import { fetchAllCommunities, getCommunityById } from "../repositories/community.repo.js";
 import { create_community_service, get_community_service, join_community_service, delete_community_service } from "../services/community.service.js";
 import { AppError } from '../errors/app.error.js'
 import { findUserById } from "../repositories/user.repo.js";
@@ -32,6 +32,19 @@ export const getCommunities = async (req, res) => {
     } catch (err) {
         console.log("Get Community Error: ", err);
         return res.status(500).json({ error: "Cannot get Communities: Internal Server Error" });
+    }
+}
+
+export const getAllCommunities = async(req,res) => {
+    try{
+        const communities = await fetchAllCommunities();
+        return res.status(200).json({
+            message:"communities fetched successfully",
+            communities: communities
+        })
+    }catch{
+        console.log("Error Fetching communities", err)
+        return res.status(500).json({error:"Cannot fetch communities: Internal server error"});
     }
 }
 

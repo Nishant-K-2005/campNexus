@@ -1,6 +1,6 @@
+import dotenv from 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import http from 'http'
 import authRoutes from './routes/authRoute.js'
@@ -11,7 +11,6 @@ import replyRoutes from './routes/replyRoute.js'
 import { initSocket } from './socket/socket.js'
 import './workers/ai.worker.js';
 
-dotenv.config()
 
 const app = express()
  

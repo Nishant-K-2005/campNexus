@@ -19,6 +19,10 @@ export const getCommunityById = (community_id) => {
     })
 }
 
+export const fetchAllCommunities = () => {
+    return prisma.Community.findMany()
+}
+
 export const createCommunityMember = (user_id, community_id) => {
     return prisma.communityMember.create({
         data: {

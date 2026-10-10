@@ -61,7 +61,7 @@ model Community {
   name String
   description String?
   tags String[]
-  embedding_vector Unsupported("vector(384)")?
+  embedding_vector Unsupported("vector(768)")?
   created_by_user_id String
   created_at DateTime @default(now())
   deleted_at DateTime?
@@ -111,7 +111,7 @@ model Post{
   content String
   type PostType
   status PostStatus @default(Pending)
-  embedding_vector Unsupported("vector(384)")?
+  embedding_vector Unsupported("vector(768)")?
   created_at DateTime @default(now())
   deleted_at DateTime?
   purge_at DateTime?
